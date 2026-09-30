@@ -49,17 +49,19 @@
     var mode = null;
 
     function offerBrowserInstall() {
-      /* Chrome fires this on a desktop as well, but a page asking to be
-         installed on the computer it is already open on is noise — and the
-         browser keeps its own install button in the address bar for anyone
-         who wants it there. The band is for phones. */
-      if (!isTouchDevice()) return;
-
       mode = 'prompt';
       button.textContent = 'Install app';
-      title.textContent = 'Keep MyMon on your phone';
-      copy.textContent = 'It gets its own icon and opens without the browser bar, ' +
-        'like any other app.';
+
+      if (isTouchDevice()) {
+        title.textContent = 'Keep MyMon on your phone';
+        copy.textContent = 'It gets its own icon and opens without the browser bar, ' +
+          'like any other app.';
+      } else {
+        title.textContent = 'Install MyMon on this computer';
+        copy.textContent = 'It opens in its own window — no tabs, no address bar — ' +
+          'and sits with your other apps.';
+      }
+
       band.classList.remove('hidden');
     }
 
