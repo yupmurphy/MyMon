@@ -90,7 +90,14 @@ window.MyMon = window.MyMon || {};
 
     return client.auth.signInWithOAuth({
       provider: 'google',
-      options: { redirectTo: pageUrl('dashboard.html') }
+      options: {
+        redirectTo: pageUrl('dashboard.html'),
+
+        /* Signing out of MyMon does not sign you out of Google, so without
+           this Google would silently hand back the same account and the sign
+           out button would look broken. This asks it to offer the chooser. */
+        queryParams: { prompt: 'select_account' }
+      }
     }).then(function (result) {
       if (result.error) throw result.error;
       return result;
