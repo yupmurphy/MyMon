@@ -61,17 +61,46 @@ window.MyMon = window.MyMon || {};
       .catch(function () { return null; });
   })();
 
-  /* The handful of fields the interface actually shows. */
+  /* The handful of fields the interface actually shows.
+     A name set in Settings wins over the one Google supplied; leaving both
+     parts empty falls back to Google again. */
   function profile() {
     if (!currentUser) return null;
     var meta = currentUser.user_metadata || {};
     var email = currentUser.email || '';
+
+    var first = String(meta.first_name || '').trim();
+    var last = String(meta.last_name || '').trim();
+    var chosen = (first + ' ' + last).trim();
+
     return {
       id: currentUser.id,
       email: email,
-      name: meta.full_name || meta.name || email.split('@')[0] || 'there',
+      firstName: first,
+      lastName: last,
+      googleName: meta.full_name || meta.name || '',
+      name: chosen || meta.full_name || meta.name || email.split('@')[0] || 'there',
       avatar: meta.avatar_url || meta.picture || ''
     };
+  }
+
+  /* Stored on the account itself, so the name follows you to any device.
+     user_metadata is writable by its owner, which is right for a display name
+     and wrong for anything that grants permission — keep it to labels. */
+  function updateName(firstName, lastName) {
+    if (!client) return Promise.reject(new Error('MyMon is not connected.'));
+
+    return client.auth.updateUser({
+      data: {
+        first_name: String(firstName || '').trim().slice(0, 40),
+        last_name: String(lastName || '').trim().slice(0, 40)
+      }
+    }).then(function (result) {
+      if (result.error) throw result.error;
+      currentUser = result.data.user;
+      listeners.forEach(function (fn) { fn(profile()); });
+      return profile();
+    });
   }
 
   function get() { return profile(); }
@@ -145,6 +174,7 @@ window.MyMon = window.MyMon || {};
     setupProblem: setupProblem,
     get: get,
     onChange: onChange,
+    updateName: updateName,
     signInWithGoogle: signInWithGoogle,
     signOut: signOut,
     require: require,

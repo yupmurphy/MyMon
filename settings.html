@@ -1,0 +1,122 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+  <meta charset="UTF-8" />
+  <meta name="viewport" content="width=device-width, initial-scale=1.0" />
+  <title>Settings — MyMon</title>
+  <meta name="robots" content="noindex" />
+  <link rel="icon" href="favicon.ico" />
+  <link rel="preconnect" href="https://fonts.googleapis.com" />
+  <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin />
+  <link href="https://fonts.googleapis.com/css2?family=Nunito:wght@400;600;700;800;900&display=swap" rel="stylesheet" />
+  <link rel="stylesheet" href="style.css" />
+</head>
+
+<body class="booting">
+  <header class="site-header">
+    <div class="container">
+      <a class="brand" href="index.html?stay=1" aria-label="MyMon home">
+        <img src="MyM.png" class="logo" alt="MyMon" />
+      </a>
+      <nav class="site-nav" aria-label="Main">
+        <a href="dashboard.html" data-page="dashboard">Dashboard</a>
+        <a href="settings.html" data-page="settings">Settings</a>
+        <a href="about.html" data-page="about">About</a>
+      </nav>
+      <div class="header-actions">
+        <a class="user-chip" href="settings.html" data-user-chip>
+          <span class="avatar" aria-hidden="true"></span>
+          <span data-user-name></span>
+        </a>
+        <button class="btn btn--quiet" type="button" id="sign-out">Sign out</button>
+      </div>
+    </div>
+  </header>
+
+  <main class="section">
+    <div class="container container--narrow">
+      <p class="eyebrow">Your account</p>
+      <h1>Settings</h1>
+
+      <form class="card" id="name-form" novalidate style="margin-top: 2rem">
+        <div class="card__head">
+          <h2 class="card__title">What should MyMon call you?</h2>
+        </div>
+
+        <div class="settings-pair">
+          <div class="field" data-field="first">
+            <label for="field-first">First name</label>
+            <input class="input" id="field-first" type="text" maxlength="40"
+                   autocomplete="given-name" />
+            <p class="field__error"></p>
+          </div>
+
+          <div class="field" data-field="last">
+            <label for="field-last">Last name</label>
+            <input class="input" id="field-last" type="text" maxlength="40"
+                   autocomplete="family-name" />
+            <p class="field__error"></p>
+          </div>
+        </div>
+
+        <p class="card__hint" style="white-space: normal" id="name-hint"></p>
+
+        <div class="settings-actions">
+          <button class="btn btn--primary" type="submit" id="name-save">Save</button>
+          <button class="btn btn--quiet hidden" type="button" id="name-reset">
+            Use my Google name
+          </button>
+        </div>
+      </form>
+
+      <section class="card" style="margin-top: 1.25rem">
+        <div class="card__head">
+          <h2 class="card__title">How you sign in</h2>
+        </div>
+        <div class="settings-row">
+          <span class="settings-row__label">Google account</span>
+          <span class="settings-row__value num" id="account-email">&mdash;</span>
+        </div>
+        <p class="muted" style="margin-top: 1rem; margin-bottom: 0">
+          Your email comes from Google and cannot be changed here. MyMon never sees,
+          asks for or stores a password.
+        </p>
+      </section>
+
+      <section class="card" style="margin-top: 1.25rem">
+        <div class="card__head">
+          <h2 class="card__title">Your expenses</h2>
+        </div>
+        <div class="settings-row">
+          <span class="settings-row__label">Logged so far</span>
+          <span class="settings-row__value num" id="account-count">&mdash;</span>
+        </div>
+        <div class="settings-row">
+          <span class="settings-row__label">First one</span>
+          <span class="settings-row__value num" id="account-since">&mdash;</span>
+        </div>
+        <p class="muted" style="margin-top: 1rem; margin-bottom: 0">
+          Stored under your account, not in this browser. Signing out on one device
+          leaves everything untouched on the others.
+        </p>
+      </section>
+    </div>
+  </main>
+
+  <footer class="site-footer">
+    <div class="container">
+      <p>&copy; <span data-year>2026</span> MyMon &mdash; v1.1.1</p>
+      <p><a href="about.html">About the project</a></p>
+    </div>
+  </footer>
+
+  <div class="booting-veil" aria-hidden="true"><span class="spinner"></span></div>
+
+  <script src="https://cdn.jsdelivr.net/npm/@supabase/supabase-js@2"></script>
+  <script src="js/config.js"></script>
+  <script src="js/session.js"></script>
+  <script src="js/data.js"></script>
+  <script src="js/ui.js"></script>
+  <script src="js/settings.js"></script>
+</body>
+</html>
