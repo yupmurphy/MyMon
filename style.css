@@ -668,6 +668,42 @@ img { max-width: 100%; height: auto; }
 .cta-band .btn--primary:hover { background: var(--brand-050); }
 
 /* ---------- settings ---------- */
+.input-at {
+  display: flex;
+  align-items: center;
+  background: var(--surface);
+  border: 1px solid var(--line-strong);
+  border-radius: var(--r-sm);
+  padding-left: .9rem;
+  transition: border-color .15s ease, box-shadow .15s ease;
+}
+.input-at:focus-within {
+  border-color: var(--brand-500);
+  box-shadow: var(--ring);
+}
+.input-at > span {
+  font-size: 1.05rem;
+  font-weight: 800;
+  color: var(--ink-400);
+  line-height: 1;
+}
+.input-at input {
+  flex: 1;
+  min-width: 0;
+  border: 0;
+  background: none;
+  padding: .7rem .5rem;
+  font: inherit;
+  font-weight: 700;
+  color: var(--ink-900);
+}
+/* Same reason as the amount box: one ring for the whole field, not two. */
+.input-at input:focus,
+.input-at input:focus-visible { outline: none; box-shadow: none; }
+
+.card__hint[data-state="good"] { color: var(--brand-600); font-weight: 700; }
+.card__hint[data-state="bad"] { color: var(--danger); font-weight: 700; }
+
 .settings-pair {
   display: grid;
   grid-template-columns: 1fr 1fr;

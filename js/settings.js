@@ -96,6 +96,104 @@
     });
   }
 
+  /* ---------- username ---------- */
+
+  var claimed = null;        /* the name already saved, if any */
+  var checkTimer = null;
+
+  function setStatus(text, state) {
+    dom.userStatus.textContent = text;
+    dom.userStatus.dataset.state = state || '';
+  }
+
+  /* Runs while typing, a beat after the last keystroke so the database is not
+     asked once per letter. */
+  function checkAvailability() {
+    window.clearTimeout(checkTimer);
+    setFieldError('username', '');
+
+    var typed = dom.username.value;
+    var checked = NS.profile.validate(typed);
+
+    if (!typed.trim()) {
+      setStatus(claimed
+        ? 'Your username is @' + claimed + '.'
+        : 'Three to twenty characters. Letters, numbers and underscores, starting with a letter.', '');
+      return;
+    }
+
+    if (!checked.ok) {
+      setStatus(checked.error, 'bad');
+      return;
+    }
+
+    if (claimed && checked.value === claimed) {
+      setStatus('This is already your username.', '');
+      return;
+    }
+
+    setStatus('Checking…', '');
+
+    checkTimer = window.setTimeout(function () {
+      var asked = checked.value;
+      NS.profile.isAvailable(asked)
+        .then(function (free) {
+          /* Ignore an answer that arrived after the person kept typing. */
+          if (NS.profile.validate(dom.username.value).value !== asked) return;
+          setStatus(free ? '@' + asked + ' is free.' : '@' + asked + ' is already taken.',
+            free ? 'good' : 'bad');
+        })
+        .catch(function () {
+          setStatus('Could not check that right now.', '');
+        });
+    }, 400);
+  }
+
+  function saveUsername(event) {
+    event.preventDefault();
+    window.clearTimeout(checkTimer);
+    setFieldError('username', '');
+
+    dom.userSave.disabled = true;
+    dom.userSave.textContent = 'Saving…';
+
+    NS.profile.save(dom.username.value).then(function (result) {
+      dom.userSave.disabled = false;
+      dom.userSave.textContent = 'Save';
+
+      if (!result.ok) {
+        setFieldError('username', result.error);
+        setStatus('', '');
+        return;
+      }
+
+      claimed = result.username;
+      dom.username.value = claimed;
+      setStatus('Your username is @' + claimed + '.', 'good');
+      ui.toast('Username saved: @' + claimed);
+    }).catch(function (error) {
+      dom.userSave.disabled = false;
+      dom.userSave.textContent = 'Save';
+      ui.toast('Could not save the username. ' +
+        (error && error.message ? error.message : 'Please try again.'), { duration: 8000 });
+    });
+  }
+
+  function loadUsername() {
+    return NS.profile.load().then(function (row) {
+      claimed = row ? row.username : null;
+      if (claimed) {
+        dom.username.value = claimed;
+        setStatus('Your username is @' + claimed + '.', 'good');
+      }
+    }).catch(function (error) {
+      /* Most likely the profiles table has not been created yet. */
+      setStatus('Usernames are not set up on this project yet.', 'bad');
+      dom.userSave.disabled = true;
+      if (window.console) window.console.warn('profiles:', error && error.message);
+    });
+  }
+
   function init() {
     dom = {
       first: byId('field-first'),
@@ -106,7 +204,11 @@
       form: byId('name-form'),
       email: byId('account-email'),
       count: byId('account-count'),
-      since: byId('account-since')
+      since: byId('account-since'),
+      username: byId('field-username'),
+      userForm: byId('username-form'),
+      userSave: byId('username-save'),
+      userStatus: byId('username-status')
     };
 
     session.require()
@@ -140,8 +242,11 @@
           });
         }
 
+        dom.userForm.addEventListener('submit', saveUsername);
+        dom.username.addEventListener('input', checkAvailability);
+
         renderHint();
-        return data.load();
+        return Promise.all([data.load(), loadUsername()]);
       })
       .then(function (loaded) {
         if (!loaded) return;

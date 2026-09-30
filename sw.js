@@ -6,7 +6,7 @@
    It never touches anything that is not served from this site, so requests to
    Supabase, Google and the CDN pass straight through untouched. */
 
-var VERSION = 'mymon-v1.1.1';
+var VERSION = 'mymon-v1.1.2';
 
 /* The pages and files worth having ready before they are asked for. */
 var SHELL = [
@@ -23,6 +23,7 @@ var SHELL = [
   'js/landing.js',
   'js/dashboard.js',
   'js/settings.js',
+  'js/profile.js',
   'MyM.png',
   'problem.png',
   'favicon.ico',

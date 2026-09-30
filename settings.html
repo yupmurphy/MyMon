@@ -74,6 +74,35 @@
         </div>
       </form>
 
+      <form class="card" id="username-form" novalidate style="margin-top: 1.25rem">
+        <div class="card__head">
+          <h2 class="card__title">Your username</h2>
+        </div>
+
+        <div class="field" data-field="username">
+          <label for="field-username">Username</label>
+          <div class="input-at">
+            <span aria-hidden="true">@</span>
+            <input id="field-username" type="text" maxlength="20" spellcheck="false"
+                   autocapitalize="none" autocomplete="off" placeholder="victor" />
+          </div>
+          <p class="field__error"></p>
+        </div>
+
+        <p class="card__hint" style="white-space: normal" id="username-status" aria-live="polite">
+          Three to twenty characters. Letters, numbers and underscores, starting with a letter.
+        </p>
+
+        <div class="settings-actions">
+          <button class="btn btn--primary" type="submit" id="username-save">Save</button>
+        </div>
+
+        <p class="muted" style="margin-top: 1rem; margin-bottom: 0; font-size: .9rem">
+          Unlike your name above, a username belongs to one person only. It is how friends
+          will find you once MyMon learns about friends.
+        </p>
+      </form>
+
       <section class="card" style="margin-top: 1.25rem">
         <div class="card__head">
           <h2 class="card__title">How you sign in</h2>
@@ -121,6 +150,7 @@
   <script src="js/config.js"></script>
   <script src="js/session.js"></script>
   <script src="js/data.js"></script>
+  <script src="js/profile.js"></script>
   <script src="js/ui.js"></script>
   <script src="js/settings.js"></script>
 </body>
