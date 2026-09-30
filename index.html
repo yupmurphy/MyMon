@@ -1,0 +1,203 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+  <meta charset="UTF-8" />
+  <meta name="viewport" content="width=device-width, initial-scale=1.0" />
+  <title>MyMon — see where your money went</title>
+  <meta name="description" content="MyMon is a small personal expense tracker. Log what you spend, see the month at a glance. No noise, no lectures." />
+  <link rel="icon" href="favicon.ico" />
+  <link rel="preconnect" href="https://fonts.googleapis.com" />
+  <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin />
+  <link href="https://fonts.googleapis.com/css2?family=Nunito:wght@400;600;700;800;900&display=swap" rel="stylesheet" />
+  <link rel="stylesheet" href="style.css" />
+
+  <!-- Someone already signed in on this browser goes straight to the app. -->
+  <script src="js/session.js"></script>
+  <script>window.MyMon.session.redirectIfSignedIn();</script>
+</head>
+
+<body>
+  <header class="site-header">
+    <div class="container">
+      <a class="brand" href="index.html" aria-label="MyMon home">
+        <img src="MyM.png" class="logo" alt="MyMon" />
+      </a>
+      <nav class="site-nav" aria-label="Main">
+        <a href="index.html" data-page="home">Home</a>
+        <a href="about.html" data-page="about">About</a>
+        <a href="dashboard.html" data-page="dashboard" data-when="signed-in">Dashboard</a>
+      </nav>
+      <div class="header-actions">
+        <button class="btn btn--primary" type="button" data-open-signin>Open MyMon</button>
+      </div>
+    </div>
+  </header>
+
+  <main>
+    <section class="hero">
+      <div class="container hero__grid">
+        <div>
+          <p class="eyebrow">Personal expense tracker</p>
+          <h1>Where did the <em>money</em> go?</h1>
+          <p class="hero__lede">
+            MyMon keeps one number in front of you — what you have spent this month —
+            and shows you exactly which habits got you there.
+          </p>
+          <p class="hero__tagline">Your money habits. Under &ldquo;parental&rdquo; supervision.</p>
+          <p class="hero__kicker">Again.</p>
+
+          <div class="hero__actions">
+            <button class="btn btn--primary btn--lg" type="button" data-open-signin>
+              Start tracking
+            </button>
+            <a class="btn btn--ghost btn--lg" href="#why">See what is inside</a>
+          </div>
+          <p class="hero__note">No account, no email. Everything stays in this browser.</p>
+        </div>
+
+        <!-- A still of the real dashboard, built from the same components. -->
+        <div class="preview" aria-hidden="true">
+          <p class="preview__label">This month you have spent</p>
+          <p class="preview__value">$1,284.50</p>
+
+          <div class="share-bar">
+            <div class="share-bar__seg" style="--dot: var(--cat-food); flex: 32.7"></div>
+            <div class="share-bar__seg" style="--dot: var(--cat-bills); flex: 28.7"></div>
+            <div class="share-bar__seg" style="--dot: var(--cat-transport); flex: 16.3"></div>
+            <div class="share-bar__seg" style="--dot: var(--cat-entertainment); flex: 11.5"></div>
+            <div class="share-bar__seg" style="--dot: var(--cat-hobby); flex: 6.6"></div>
+            <div class="share-bar__seg" style="--dot: var(--cat-shopping); flex: 4.0"></div>
+          </div>
+
+          <div class="preview__rows">
+            <div class="preview__row" style="--dot: var(--cat-food)">
+              <i></i><span>Food</span><b>$420.35 &middot; 33%</b>
+            </div>
+            <div class="preview__row" style="--dot: var(--cat-bills)">
+              <i></i><span>Bills</span><b>$368.90 &middot; 29%</b>
+            </div>
+            <div class="preview__row" style="--dot: var(--cat-transport)">
+              <i></i><span>Transport</span><b>$210.00 &middot; 16%</b>
+            </div>
+            <div class="preview__row" style="--dot: var(--line-strong)">
+              <i></i><span class="muted">3 more categories</span><b class="muted">$285.25 &middot; 22%</b>
+            </div>
+          </div>
+        </div>
+      </div>
+    </section>
+
+    <section class="section" id="why">
+      <div class="container">
+        <div class="section__head">
+          <h2>Why MyMon?</h2>
+          <p>Three things, done properly. Everything else can wait.</p>
+        </div>
+
+        <div class="reasons">
+          <article class="reason">
+            <div class="reason__icon">
+              <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round" aria-hidden="true">
+                <path d="M3 3v18h18" /><path d="M7 15l4-5 3 3 5-7" />
+              </svg>
+            </div>
+            <h3>Clear control</h3>
+            <p>Every expense lands in one clean dashboard. One number, updated the moment you add something.</p>
+          </article>
+
+          <article class="reason">
+            <div class="reason__icon">
+              <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round" aria-hidden="true">
+                <circle cx="12" cy="12" r="9" /><path d="M12 12V7" /><path d="M12 12l4.2 2.4" />
+              </svg>
+            </div>
+            <h3>Better decisions</h3>
+            <p>See what each category really costs you per month — in money and in percent, side by side.</p>
+          </article>
+
+          <article class="reason">
+            <div class="reason__icon">
+              <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round" aria-hidden="true">
+                <path d="M4 12h6" /><path d="M14 12h6" /><circle cx="12" cy="12" r="2" />
+                <path d="M4 6h10" /><path d="M18 6h2" /><path d="M4 18h2" /><path d="M10 18h10" />
+              </svg>
+            </div>
+            <h3>No noise</h3>
+            <p>No budgets to configure, no notifications, no ads. One button: add expense.</p>
+          </article>
+        </div>
+      </div>
+    </section>
+
+    <section class="section problem">
+      <div class="container problem__layout">
+        <div class="problem__text">
+          <h2>Most people think about money only when it runs out</h2>
+          <p>
+            Tracking expenses should take five seconds, not an evening with a spreadsheet.
+            MyMon asks for an amount, a category and a date — that is the whole ritual.
+          </p>
+          <p>
+            What you get back is the part that actually changes behaviour: a month you
+            can read at a glance.
+          </p>
+          <p>And maybe some help with it.</p>
+        </div>
+        <div class="problem__image">
+          <img src="problem.png" alt="Someone sitting next to a piggy bank and a stack of coins" />
+        </div>
+      </div>
+    </section>
+
+    <div class="container">
+      <section class="cta-band">
+        <h2>Start tracking today</h2>
+        <p>No lectures. No guilt. Just a clearer view of your money.</p>
+        <button class="btn btn--primary btn--lg" type="button" data-open-signin>
+          Open the dashboard
+        </button>
+      </section>
+    </div>
+  </main>
+
+  <footer class="site-footer">
+    <div class="container">
+      <p>&copy; <span data-year>2026</span> MyMon &mdash; v1.0</p>
+      <p><a href="about.html">About the project</a></p>
+    </div>
+  </footer>
+
+  <!-- Sign in: v1 keeps a name in this browser, nothing more. -->
+  <dialog class="modal" id="signin-dialog" aria-labelledby="signin-title">
+    <form id="signin-form" method="dialog">
+      <div class="modal__head">
+        <div>
+          <h2 id="signin-title">Welcome to MyMon</h2>
+          <p>Pick a name. There is no password and nothing leaves this browser.</p>
+        </div>
+        <button class="modal__close" type="button" data-close-dialog aria-label="Close">
+          <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.2" stroke-linecap="round" aria-hidden="true">
+            <path d="M6 6l12 12M18 6L6 18" />
+          </svg>
+        </button>
+      </div>
+
+      <div class="modal__body">
+        <div class="field" data-field="name">
+          <label for="field-name">Name or nickname</label>
+          <input class="input" id="field-name" type="text" maxlength="40" autocomplete="nickname" placeholder="Vasea" />
+          <p class="field__error"></p>
+        </div>
+      </div>
+
+      <div class="modal__foot">
+        <button class="btn btn--quiet" type="button" data-close-dialog>Cancel</button>
+        <button class="btn btn--primary" type="submit">Let me in</button>
+      </div>
+    </form>
+  </dialog>
+
+  <script src="js/ui.js"></script>
+  <script src="js/landing.js"></script>
+</body>
+</html>

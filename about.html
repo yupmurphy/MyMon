@@ -1,0 +1,124 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+  <meta charset="UTF-8" />
+  <meta name="viewport" content="width=device-width, initial-scale=1.0" />
+  <title>About — MyMon</title>
+  <meta name="description" content="What MyMon v1 does, what it deliberately does not do, and where your data lives." />
+  <link rel="icon" href="favicon.ico" />
+  <link rel="preconnect" href="https://fonts.googleapis.com" />
+  <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin />
+  <link href="https://fonts.googleapis.com/css2?family=Nunito:wght@400;600;700;800;900&display=swap" rel="stylesheet" />
+  <link rel="stylesheet" href="style.css" />
+  <script src="js/session.js"></script>
+</head>
+
+<body>
+  <header class="site-header">
+    <div class="container">
+      <a class="brand" href="index.html?stay=1" aria-label="MyMon home">
+        <img src="MyM.png" class="logo" alt="MyMon" />
+      </a>
+      <nav class="site-nav" aria-label="Main">
+        <a href="index.html?stay=1" data-page="home">Home</a>
+        <a href="about.html" data-page="about">About</a>
+        <a href="dashboard.html" data-page="dashboard" data-when="signed-in">Dashboard</a>
+      </nav>
+      <div class="header-actions">
+        <a class="btn btn--primary" href="dashboard.html" data-when="signed-in">Dashboard</a>
+        <a class="btn btn--primary" href="index.html" data-when="signed-out">Open MyMon</a>
+      </div>
+    </div>
+  </header>
+
+  <main>
+    <section class="section">
+      <div class="container container--narrow prose">
+        <p class="eyebrow">Version 1.0</p>
+        <h1>About MyMon</h1>
+        <p class="hero__lede">
+          MyMon is a small personal expense tracker built for clarity, not for completeness.
+          It answers one question well: what did this month cost me, and where did it go?
+        </p>
+
+        <div class="card" style="margin-top: 2.5rem">
+          <h2>What v1 does</h2>
+          <ul>
+            <li>Logs an expense: amount, category, date and an optional comment.</li>
+            <li>Shows the total for a month, with the split by category in money and percent.</li>
+            <li>Compares the month you are looking at with the one before it.</li>
+            <li>Lets you step back through previous months.</li>
+          </ul>
+        </div>
+
+        <div class="prose-grid" style="margin-top: 1.25rem">
+          <div class="card">
+            <h2>The rules</h2>
+            <ul>
+              <li>An amount is at least $0.01 and never negative.</li>
+              <li>A date is never in the future.</li>
+              <li>You can log this month or last month.</li>
+              <li>Months are plain calendar months &mdash; no closing, no salary cycles.</li>
+              <li>The seven categories are fixed, and one of them is <em>Other</em>.</li>
+            </ul>
+          </div>
+
+          <div class="card">
+            <h2>Not in v1</h2>
+            <ul>
+              <li>Income, refunds and loans</li>
+              <li>Friends and shared groups</li>
+              <li>Custom categories</li>
+              <li>Exports and PDF reports</li>
+              <li>A real server &mdash; that comes next</li>
+            </ul>
+          </div>
+        </div>
+
+        <div class="card" style="margin-top: 1.25rem">
+          <h2>Where your data lives</h2>
+          <p>
+            Everything is stored in this browser, on this device, using local storage.
+            Nothing is sent anywhere, there is no account and there is no password &mdash;
+            signing in only means MyMon remembers what to call you.
+          </p>
+          <p class="muted" style="margin-bottom: 0">
+            Clearing your browser data clears your expenses with it. A real backend is the
+            next step, and the storage layer is already isolated so it can be swapped in.
+          </p>
+        </div>
+
+        <div class="card" style="margin-top: 1.25rem">
+          <h2>About the name</h2>
+          <p style="margin-bottom: 0">
+            MyMon is a working project name. Trademark availability will be checked later,
+            and the name may change to MonMom or another alternative if needed.
+          </p>
+        </div>
+      </div>
+    </section>
+
+    <div class="container">
+      <section class="cta-band">
+        <h2>Ready when you are</h2>
+        <p>Three fields and a date. That is the whole ritual.</p>
+        <a class="btn btn--primary btn--lg" href="dashboard.html" data-when="signed-in">Open the dashboard</a>
+        <a class="btn btn--primary btn--lg" href="index.html" data-when="signed-out">Start tracking</a>
+      </section>
+    </div>
+  </main>
+
+  <footer class="site-footer">
+    <div class="container">
+      <p>&copy; <span data-year>2026</span> MyMon &mdash; v1.0</p>
+      <p><a href="index.html?stay=1">Back to the landing page</a></p>
+    </div>
+  </footer>
+
+  <script src="js/ui.js"></script>
+  <script>
+    window.MyMon.ui.mountHeader({ page: 'about' });
+    window.MyMon.ui.year();
+  </script>
+</body>
+</html>
