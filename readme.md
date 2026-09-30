@@ -26,17 +26,22 @@ will not work any more; signing in needs a real address to return to.
 ## Files
 
 ```
-index.html          landing page (public)
-dashboard.html      the app (signed in)
-about.html          what v1 does and does not do
-style.css           design tokens + every component
-js/config.js        which Supabase project to talk to
-js/session.js       signing in with Google, and who is signed in
-js/data.js          categories, validation, monthly statistics, database access
-js/ui.js            money formatting, toasts, chart tooltips, header
-js/landing.js       landing page behaviour
-js/dashboard.js     the dashboard
-supabase/schema.sql the table and the access rules, to run once per project
+index.html           landing page (public)
+dashboard.html       the app (signed in)
+settings.html        your name and your account
+about.html           what v1 does and does not do
+style.css            design tokens + every component
+js/config.js         which Supabase project to talk to
+js/session.js        signing in with Google, and who is signed in
+js/data.js           categories, validation, monthly statistics, database access
+js/ui.js             money formatting, toasts, chart tooltips, header
+js/landing.js        landing page behaviour
+js/dashboard.js      the dashboard
+js/settings.js       the settings page
+supabase/schema.sql  the table and the access rules, to run once per project
+manifest.webmanifest what the phone needs to install MyMon
+sw.js                service worker: installable, and it opens on a bad line
+icon-*.png           app icons, drawn from the logo
 ```
 
 `js/session.js` and `js/data.js` are the only files that know Supabase exists. Moving to

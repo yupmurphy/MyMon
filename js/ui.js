@@ -184,6 +184,22 @@ window.MyMon = window.MyMon || {};
     });
   }
 
+  /* Registering the worker is what makes the browser offer "install" and what
+     keeps MyMon opening on a bad connection. It is harmless where it is not
+     supported, and skipped entirely for a page opened off the file system. */
+  function registerWorker() {
+    if (!('serviceWorker' in navigator)) return;
+    if (window.location.protocol.indexOf('http') !== 0) return;
+
+    window.addEventListener('load', function () {
+      navigator.serviceWorker.register('sw.js').catch(function () {
+        /* No worker simply means no offline start; the app is fine without. */
+      });
+    });
+  }
+
+  registerWorker();
+
   NS.ui = {
     money: money,
     moneyShort: moneyShort,
