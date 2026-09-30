@@ -131,6 +131,14 @@ img { max-width: 100%; height: auto; }
 
 .hidden { display: none !important; }
 
+/* The landing page has a signed-in face and a signed-out one. Knowing which to
+   show needs a round trip, so the page guesses first (see the script in
+   index.html's head) and this rule paints that guess. It outranks .hidden on
+   purpose, and lives only for the instant before landing.js removes the
+   attribute and hands the decision back to .hidden. */
+html[data-session="in"] [data-when="signed-out"],
+html[data-session="out"] [data-when="signed-in"] { display: none !important; }
+
 .card {
   background: var(--surface);
   border: 1px solid var(--line);

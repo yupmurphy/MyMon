@@ -138,12 +138,21 @@ window.MyMon = window.MyMon || {};
     });
 
     var user = NS.session.get();
+
+    /* The name can appear outside the chip too — the landing page greets you
+       with it — so every marked slot gets filled, wherever it sits. */
+    if (user) {
+      var slots = document.querySelectorAll('[data-user-name]');
+      Array.prototype.forEach.call(slots, function (slot) {
+        slot.textContent = user.name;
+      });
+    }
+
     var chip = document.querySelector('[data-user-chip]');
     if (chip) {
       if (user) {
         chip.classList.remove('hidden');
         var avatar = chip.querySelector('.avatar');
-        var label = chip.querySelector('[data-user-name]');
         if (avatar) {
           /* Google usually gives us a picture; initials are the fallback. */
           if (user.avatar) {
@@ -160,7 +169,6 @@ window.MyMon = window.MyMon || {};
             avatar.textContent = NS.session.initials(user.name);
           }
         }
-        if (label) label.textContent = user.name;
       } else {
         chip.classList.add('hidden');
       }

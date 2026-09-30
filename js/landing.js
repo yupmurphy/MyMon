@@ -31,6 +31,14 @@
     Array.prototype.forEach.call(buttons, function (btn) {
       btn.addEventListener('click', function (event) {
         event.preventDefault();
+
+        /* Already signed in — sending them back through Google would ask them
+           to pick an account again, which reads as having been logged out. */
+        if (session.get()) {
+          window.location.href = 'dashboard.html';
+          return;
+        }
+
         busy(true);
         session.signInWithGoogle().catch(function (error) {
           busy(false);
@@ -53,9 +61,16 @@
       }
     }
 
-    /* Someone already signed in who lands here goes straight to the app. */
-    session.redirectIfSignedIn().then(function () {
+    /* Someone who opened the site itself goes straight to the app; someone who
+       clicked Home stays here and gets the signed-in version of the page. */
+    session.redirectIfSignedIn().then(function (leaving) {
+      if (leaving) return;
+
       ui.mountHeader({ page: 'home' });
+
+      /* Now that the answer is certain, the guess in the head has nothing left
+         to do — .hidden alone decides from here. */
+      document.documentElement.removeAttribute('data-session');
     });
   }
 

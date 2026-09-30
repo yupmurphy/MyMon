@@ -28,21 +28,46 @@
       window.dispatchEvent(new Event('mymon:installable'));
     });
   </script>
+
+  <!-- Asking the server who you are takes a moment, and this page has two faces:
+       one for a visitor, one for someone already signed in. Guessing from the
+       token Supabase parked in this browser lets us paint the right one at once,
+       instead of flashing "Continue with Google" at a signed-in user.
+       landing.js drops this attribute the moment it knows for certain. -->
+  <script>
+    (function () {
+      var state = 'out';
+      try {
+        for (var i = 0; i < localStorage.length; i++) {
+          if (/^sb-.+-auth-token$/.test(localStorage.key(i))) { state = 'in'; break; }
+        }
+      } catch (e) { /* private mode: treat as a visitor */ }
+      document.documentElement.setAttribute('data-session', state);
+    })();
+  </script>
 </head>
 
 <body>
   <header class="site-header">
     <div class="container">
-      <a class="brand" href="index.html" aria-label="MyMon home">
+      <a class="brand" href="index.html?stay=1" aria-label="MyMon home">
         <img src="MyM.png" class="logo" alt="MyMon" />
       </a>
       <nav class="site-nav" aria-label="Main">
-        <a href="index.html" data-page="home">Home</a>
+        <a href="index.html?stay=1" data-page="home">Home</a>
         <a href="about.html" data-page="about">About</a>
         <a href="dashboard.html" data-page="dashboard" data-when="signed-in">Dashboard</a>
+        <a href="settings.html" data-page="settings" data-when="signed-in">Settings</a>
       </nav>
       <div class="header-actions">
-        <button class="btn btn--primary" type="button" data-signin>Open MyMon</button>
+        <a class="user-chip" href="settings.html" data-user-chip data-when="signed-in">
+          <span class="avatar" aria-hidden="true"></span>
+          <span data-user-name></span>
+        </a>
+        <a class="btn btn--primary" href="dashboard.html" data-when="signed-in">Dashboard</a>
+        <button class="btn btn--primary" type="button" data-signin data-when="signed-out">
+          Open MyMon
+        </button>
       </div>
     </div>
   </header>
@@ -60,7 +85,12 @@
           <p class="hero__tagline">Your money habits. Under &ldquo;parental&rdquo; supervision.</p>
           <p class="hero__kicker">Again.</p>
 
-          <div class="hero__actions">
+          <div class="hero__actions" data-when="signed-in">
+            <a class="btn btn--primary btn--lg" href="dashboard.html">Open the dashboard</a>
+            <a class="btn btn--ghost btn--lg" href="#why">See what is inside</a>
+          </div>
+
+          <div class="hero__actions" data-when="signed-out">
             <button class="btn btn--google btn--lg" type="button" data-signin>
               <svg viewBox="0 0 48 48" aria-hidden="true" class="g-logo">
                 <path fill="#EA4335" d="M24 9.5c3.5 0 6.6 1.2 9 3.6l6.7-6.7C35.6 2.6 30.2.5 24 .5 14.6.5 6.5 5.8 2.6 13.6l7.8 6c1.9-5.6 7.1-9.6 13.6-10.1z"/>
@@ -72,7 +102,11 @@
             </button>
             <a class="btn btn--ghost btn--lg" href="#why">See what is inside</a>
           </div>
-          <p class="hero__note">
+          <p class="hero__note" data-when="signed-in">
+            Signed in as <b data-user-name>you</b>. Nothing was lost — your month is
+            one tap away.
+          </p>
+          <p class="hero__note" data-when="signed-out">
             Your account is your Google account — MyMon never sees a password.
           </p>
           <p class="notice notice--ok hidden" id="signed-out" role="status">
@@ -195,7 +229,10 @@
       <section class="cta-band">
         <h2>Start tracking today</h2>
         <p>No lectures. No guilt. Just a clearer view of your money.</p>
-        <button class="btn btn--primary btn--lg" type="button" data-signin>
+        <a class="btn btn--primary btn--lg" href="dashboard.html" data-when="signed-in">
+          Open the dashboard
+        </a>
+        <button class="btn btn--primary btn--lg" type="button" data-signin data-when="signed-out">
           Open the dashboard
         </button>
       </section>
@@ -204,7 +241,7 @@
 
   <footer class="site-footer">
     <div class="container">
-      <p>&copy; <span data-year>2026</span> MyMon &mdash; v1.1.1</p>
+      <p>&copy; <span data-year>2026</span> MyMon &mdash; v1.1.2</p>
       <p><a href="about.html">About the project</a></p>
     </div>
   </footer>
