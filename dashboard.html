@@ -181,7 +181,10 @@
         </div>
 
         <div class="field" data-field="comment">
-          <label for="field-comment">Comment <span class="field__optional">&mdash; optional</span></label>
+          <div class="field__row">
+            <label for="field-comment">Comment <span class="field__optional">&mdash; optional</span></label>
+            <span class="field__count" id="comment-count" aria-live="polite">0 / 140</span>
+          </div>
           <textarea class="textarea" id="field-comment" maxlength="140"
                     placeholder="What was it for?"></textarea>
           <p class="field__error"></p>

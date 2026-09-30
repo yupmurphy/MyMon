@@ -217,6 +217,14 @@
     });
   }
 
+  function updateCommentCount() {
+    var used = dom.fieldComment.value.length;
+    var limit = data.MAX_COMMENT;
+    dom.commentCount.textContent = used + ' / ' + limit;
+    dom.commentCount.dataset.state = used >= limit ? 'full'
+      : (used >= limit - 20 ? 'near' : '');
+  }
+
   function setSaving(state) {
     dom.submitBtn.disabled = state;
     dom.submitBtn.textContent = state ? 'Saving…' : 'Add expense';
@@ -226,6 +234,7 @@
     clearErrors();
     dom.form.reset();
     setSaving(false);
+    updateCommentCount();
     dom.fieldDate.min = data.previousMonth() + '-01';
     dom.fieldDate.max = data.today();
     dom.fieldDate.value = viewMonth === data.currentMonth()
@@ -346,6 +355,7 @@
     });
 
     dom.form.addEventListener('submit', submit);
+    dom.fieldComment.addEventListener('input', updateCommentCount);
 
     Array.prototype.forEach.call(document.querySelectorAll('[data-close-dialog]'), function (btn) {
       btn.addEventListener('click', closeDialog);
@@ -415,7 +425,8 @@
       catGrid: byId('category-grid'),
       fieldAmount: byId('field-amount'),
       fieldDate: byId('field-date'),
-      fieldComment: byId('field-comment')
+      fieldComment: byId('field-comment'),
+      commentCount: byId('comment-count')
     };
 
     /* The page stays hidden until we know who this is — no flash of someone
