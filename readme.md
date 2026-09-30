@@ -1,42 +1,63 @@
-# MyMon — v1
+# MyMon — v1.1
 
 MyMon is a simple personal expense tracker focused on clarity, not complexity.
 
 > **Note:** MyMon is a working project name. Trademark availability will be checked
 > later, and the name may change to MonMom or another alternative if needed.
 
-**Status: v1 is built.** Everything in the scope below is implemented, front-end only,
-with the data stored in the browser.
+**Status: v1 is built, and it now has real accounts.** Everything in the scope below is
+implemented. You sign in with Google and your expenses live in a database, so the same
+numbers follow you from laptop to phone.
 
 ---
 
 ## Running it
 
-It is a plain static site — no build step, no dependencies.
+It is a plain static site — no build step, no dependencies. It does need to be served
+over `http`, because signing in redirects back to a real address:
 
 ```bash
 py -m http.server 4173
 ```
 
-Then open <http://127.0.0.1:4173/>. Opening `index.html` directly from the file system
-also works in most browsers, but a local server is the reliable way.
+Then open <http://127.0.0.1:4173/>. Opening `index.html` straight from the file system
+will not work any more; signing in needs a real address to return to.
 
 ## Files
 
 ```
-index.html       landing page (public)
-dashboard.html   the app (signed in)
-about.html       what v1 does and does not do
-style.css        design tokens + every component
-js/data.js       categories, storage, validation, monthly statistics
-js/session.js    the simulated login
-js/ui.js         money formatting, toasts, chart tooltips, header
-js/landing.js    landing page behaviour
-js/dashboard.js  the dashboard
+index.html          landing page (public)
+dashboard.html      the app (signed in)
+about.html          what v1 does and does not do
+style.css           design tokens + every component
+js/config.js        which Supabase project to talk to
+js/session.js       signing in with Google, and who is signed in
+js/data.js          categories, validation, monthly statistics, database access
+js/ui.js            money formatting, toasts, chart tooltips, header
+js/landing.js       landing page behaviour
+js/dashboard.js     the dashboard
+supabase/schema.sql the table and the access rules, to run once per project
 ```
 
-`js/data.js` and `js/session.js` are the only files that touch storage. When a real
-backend arrives, those two are what gets rewritten — nothing else has to change.
+`js/session.js` and `js/data.js` are the only files that know Supabase exists. Moving to
+a different provider later means rewriting those two — nothing else has to change.
+
+## Connecting it to your own Supabase project
+
+1. Create a project at [supabase.com](https://supabase.com).
+2. Open **SQL Editor**, paste all of `supabase/schema.sql`, press **Run**. This creates
+   the table and the rules that keep each person's expenses to themselves.
+3. Create an OAuth client in the Google Cloud Console (type: *Web application*) and give
+   it the callback address shown in Supabase under
+   **Authentication → Providers → Google**. Paste the client id and secret back there and
+   enable the provider.
+4. Under **Authentication → URL Configuration**, add every address the app runs at, for
+   example `http://127.0.0.1:4173/**`.
+5. Put the project URL and the public key into `js/config.js`.
+
+Both values in `js/config.js` are meant to be public — they reach every browser that
+opens the site. What protects the data is the Row Level Security from step 2. The
+`service_role` key is a different thing entirely and must never go near this folder.
 
 ---
 
@@ -126,12 +147,17 @@ For a selected month:
 
 - Start with clear structure
 - Build functional frontend first
-- Simulate backend locally
-- Add real backend and database later
+- ~~Simulate backend locally~~ — done in v1, replaced in v1.1
+- Add real backend and database later — **done**
 
-There is no password and no account. "Signing in" only means the browser remembers a
-name, and expenses live in `localStorage` under `mymon.transactions.v1`. Clearing
-browser data clears the expenses with it.
+Accounts are Google accounts: MyMon never sees, asks for or stores a password. Expenses
+are rows in Postgres, and the database itself refuses to hand a row to anyone but the
+person who created it.
+
+Everything is fetched once when the app opens and kept in memory, so switching months
+and adding up categories stay instant. Only adding, deleting and undoing wait on the
+server. Expenses left behind in the browser by v1 are offered for import the first time
+you sign in.
 
 ## Explicitly out of scope for v1
 
