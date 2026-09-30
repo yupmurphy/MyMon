@@ -78,16 +78,23 @@
         <div>
           <p class="eyebrow">Personal expense tracker</p>
           <h1>Where did the <em>money</em> go?</h1>
+
+          <!-- The line the whole project is named for. It used to sit in small
+               grey type under everything else; it belongs here, at full voice. -->
+          <p class="signature">
+            Your money habits.<br />
+            Under <em>&ldquo;parental&rdquo;</em> supervision.
+            <b>Again.</b>
+          </p>
+
           <p class="hero__lede">
             MyMon keeps one number in front of you — what you have spent this month —
             and shows you exactly which habits got you there.
           </p>
-          <p class="hero__tagline">Your money habits. Under &ldquo;parental&rdquo; supervision.</p>
-          <p class="hero__kicker">Again.</p>
 
           <div class="hero__actions" data-when="signed-in">
             <a class="btn btn--primary btn--lg" href="dashboard.html">Open the dashboard</a>
-            <a class="btn btn--ghost btn--lg" href="#why">See what is inside</a>
+            <a class="btn btn--ghost" href="#why">See what is inside</a>
           </div>
 
           <div class="hero__actions" data-when="signed-out">
@@ -100,7 +107,7 @@
               </svg>
               Continue with Google
             </button>
-            <a class="btn btn--ghost btn--lg" href="#why">See what is inside</a>
+            <a class="btn btn--ghost" href="#why">See what is inside</a>
           </div>
           <p class="hero__note" data-when="signed-in">
             Signed in as <b data-user-name>you</b>. Nothing was lost — your month is
@@ -154,34 +161,23 @@
           <p>Three things, done properly. Everything else can wait.</p>
         </div>
 
+        <!-- Each column is topped by one of the chart's own category colours,
+             so the page and the app look like they were made by the same hand. -->
         <div class="reasons">
-          <article class="reason">
-            <div class="reason__icon">
-              <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round" aria-hidden="true">
-                <path d="M3 3v18h18" /><path d="M7 15l4-5 3 3 5-7" />
-              </svg>
-            </div>
+          <article class="reason" style="--rule: var(--cat-food)">
+            <span class="reason__num" aria-hidden="true">01</span>
             <h3>Clear control</h3>
             <p>Every expense lands in one clean dashboard. One number, updated the moment you add something.</p>
           </article>
 
-          <article class="reason">
-            <div class="reason__icon">
-              <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round" aria-hidden="true">
-                <circle cx="12" cy="12" r="9" /><path d="M12 12V7" /><path d="M12 12l4.2 2.4" />
-              </svg>
-            </div>
+          <article class="reason" style="--rule: var(--cat-bills)">
+            <span class="reason__num" aria-hidden="true">02</span>
             <h3>Better decisions</h3>
             <p>See what each category really costs you per month — in money and in percent, side by side.</p>
           </article>
 
-          <article class="reason">
-            <div class="reason__icon">
-              <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round" aria-hidden="true">
-                <path d="M4 12h6" /><path d="M14 12h6" /><circle cx="12" cy="12" r="2" />
-                <path d="M4 6h10" /><path d="M18 6h2" /><path d="M4 18h2" /><path d="M10 18h10" />
-              </svg>
-            </div>
+          <article class="reason" style="--rule: var(--cat-transport)">
+            <span class="reason__num" aria-hidden="true">03</span>
             <h3>No noise</h3>
             <p>No budgets to configure, no notifications, no ads. One button: add expense.</p>
           </article>
@@ -203,8 +199,41 @@
           </p>
           <p>And maybe some help with it.</p>
         </div>
+        <!-- Five weeks of spending, drawn the way the dashboard draws one month.
+             The old stock illustration was purple and blue — handsome enough,
+             but not a single colour in it existed anywhere else in MyMon. -->
         <div class="problem__image">
-          <img src="problem.png" alt="Someone sitting next to a piggy bank and a stack of coins" />
+          <svg class="weeks" viewBox="0 0 400 242" role="img"
+               aria-label="Five weeks of spending, each split into coloured categories">
+            <g class="weeks__row" style="--y: 8">
+              <rect x="10"  y="8"   width="150" height="26" rx="13" fill="var(--cat-food)" />
+              <rect x="164" y="8"   width="100" height="26" rx="13" fill="var(--cat-bills)" />
+              <rect x="268" y="8"   width="68"  height="26" rx="13" fill="var(--cat-transport)" />
+              <rect x="340" y="8"   width="50"  height="26" rx="13" fill="var(--cat-entertainment)" />
+            </g>
+            <g class="weeks__row">
+              <rect x="10"  y="58"  width="200" height="26" rx="13" fill="var(--cat-bills)" />
+              <rect x="214" y="58"  width="112" height="26" rx="13" fill="var(--cat-food)" />
+              <rect x="330" y="58"  width="60"  height="26" rx="13" fill="var(--cat-hobby)" />
+            </g>
+            <g class="weeks__row">
+              <rect x="10"  y="108" width="90"  height="26" rx="13" fill="var(--cat-transport)" />
+              <rect x="104" y="108" width="80"  height="26" rx="13" fill="var(--cat-food)" />
+              <rect x="188" y="108" width="76"  height="26" rx="13" fill="var(--cat-shopping)" />
+              <rect x="268" y="108" width="66"  height="26" rx="13" fill="var(--cat-entertainment)" />
+              <rect x="338" y="108" width="52"  height="26" rx="13" fill="var(--cat-other)" />
+            </g>
+            <g class="weeks__row">
+              <rect x="10"  y="158" width="240" height="26" rx="13" fill="var(--cat-food)" />
+              <rect x="254" y="158" width="136" height="26" rx="13" fill="var(--cat-transport)" />
+            </g>
+            <g class="weeks__row">
+              <rect x="10"  y="208" width="120" height="26" rx="13" fill="var(--cat-shopping)" />
+              <rect x="134" y="208" width="110" height="26" rx="13" fill="var(--cat-bills)" />
+              <rect x="248" y="208" width="80"  height="26" rx="13" fill="var(--cat-hobby)" />
+              <rect x="332" y="208" width="58"  height="26" rx="13" fill="var(--cat-other)" />
+            </g>
+          </svg>
         </div>
       </div>
     </section>
@@ -241,7 +270,11 @@
 
   <footer class="site-footer">
     <div class="container">
-      <p>&copy; <span data-year>2026</span> MyMon &mdash; v1.1.6</p>
+      <div class="site-footer__brand">
+        <img src="MyM.png" class="logo" alt="" />
+        <p>Your money habits. Under &ldquo;parental&rdquo; supervision. <b>Again.</b></p>
+      </div>
+      <p class="site-footer__meta">&copy; <span data-year>2026</span> MyMon &mdash; v1.1.7</p>
       <p><a href="about.html">About the project</a></p>
     </div>
   </footer>
