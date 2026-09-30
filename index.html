@@ -16,6 +16,18 @@
   <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin />
   <link href="https://fonts.googleapis.com/css2?family=Nunito:wght@400;600;700;800;900&display=swap" rel="stylesheet" />
   <link rel="stylesheet" href="style.css" />
+
+  <!-- Chrome fires this once, early, and only offers the real install dialog if
+       we hold on to the event. Catching it here rather than in a script at the
+       bottom of the page means we cannot miss it. -->
+  <script>
+    window.MyMonInstall = { event: null };
+    window.addEventListener('beforeinstallprompt', function (event) {
+      event.preventDefault();
+      window.MyMonInstall.event = event;
+      window.dispatchEvent(new Event('mymon:installable'));
+    });
+  </script>
 </head>
 
 <body>
@@ -163,6 +175,22 @@
       </div>
     </section>
 
+    <!-- Shown only where MyMon can actually be installed; install.js decides. -->
+    <div class="container">
+      <section class="install-band hidden" id="install-band">
+        <div class="install-band__icon" aria-hidden="true">
+          <img src="icon-192.png" alt="" width="56" height="56" />
+        </div>
+        <div class="install-band__text">
+          <h2 id="install-title">Keep MyMon on your phone</h2>
+          <p id="install-copy">
+            It gets its own icon and opens without the browser bar, like any other app.
+          </p>
+        </div>
+        <button class="btn btn--primary" type="button" id="install-btn">Install app</button>
+      </section>
+    </div>
+
     <div class="container">
       <section class="cta-band">
         <h2>Start tracking today</h2>
@@ -181,10 +209,64 @@
     </div>
   </footer>
 
+  <!-- Safari has no install dialog, so iPhone users get the three steps. -->
+  <dialog class="modal" id="ios-install" aria-labelledby="ios-install-title">
+    <div class="modal__head">
+      <div>
+        <h2 id="ios-install-title">Add MyMon to your home screen</h2>
+        <p>Three taps in Safari, and it behaves like any other app.</p>
+      </div>
+      <button class="modal__close" type="button" data-close-install aria-label="Close">
+        <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.2" stroke-linecap="round" aria-hidden="true">
+          <path d="M6 6l12 12M18 6L6 18" />
+        </svg>
+      </button>
+    </div>
+
+    <div class="modal__body">
+      <ol class="steps">
+        <li>
+          <span class="steps__icon" aria-hidden="true">
+            <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round">
+              <path d="M12 3v13" /><path d="M8 7l4-4 4 4" />
+              <path d="M5 13v6a2 2 0 0 0 2 2h10a2 2 0 0 0 2-2v-6" />
+            </svg>
+          </span>
+          <span>Tap the <strong>Share</strong> button at the bottom of Safari.</span>
+        </li>
+        <li>
+          <span class="steps__icon" aria-hidden="true">
+            <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round">
+              <rect x="3" y="3" width="18" height="18" rx="4" />
+              <path d="M12 8v8" /><path d="M8 12h8" />
+            </svg>
+          </span>
+          <span>Scroll down and choose <strong>Add to Home Screen</strong>.</span>
+        </li>
+        <li>
+          <span class="steps__icon" aria-hidden="true">
+            <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round">
+              <path d="M5 13l4 4L19 7" />
+            </svg>
+          </span>
+          <span>Tap <strong>Add</strong>. That is it.</span>
+        </li>
+      </ol>
+      <p class="muted" style="margin: 1.25rem 0 0; font-size: .9rem">
+        It has to be Safari — other browsers on iPhone do not offer this.
+      </p>
+    </div>
+
+    <div class="modal__foot">
+      <button class="btn btn--primary" type="button" data-close-install>Got it</button>
+    </div>
+  </dialog>
+
   <script src="https://cdn.jsdelivr.net/npm/@supabase/supabase-js@2"></script>
   <script src="js/config.js"></script>
   <script src="js/session.js"></script>
   <script src="js/ui.js"></script>
   <script src="js/landing.js"></script>
+  <script src="js/install.js"></script>
 </body>
 </html>
