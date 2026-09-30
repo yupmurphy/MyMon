@@ -1,17 +1,24 @@
 /* MyMon — data layer.
-   Categories, local storage, validation and monthly statistics.
-   This is the only file that knows how a transaction is shaped, so the day a
-   real backend arrives, only the read/write functions here have to change. */
+   Categories, validation and monthly statistics, plus everything that talks to
+   the database.
+
+   The expenses are fetched once when the app opens and kept in memory. Reading
+   a month, adding up a category or switching months therefore stays instant and
+   synchronous, exactly as it was before; only the four functions that *change*
+   something have to wait for the server. */
 window.MyMon = window.MyMon || {};
 
 (function (NS) {
   'use strict';
 
-  var STORE_KEY = 'mymon.transactions.v1';
+  var TABLE = 'transactions';
+  var LEGACY_KEY = 'mymon.transactions.v1';   /* the v1 browser-only storage */
 
   /* Fixed categories. The array order is also the colour order: the palette was
      validated in this exact sequence for colour-blind separation, so segments
-     sit next to each other safely in the share bar. Do not reorder casually. */
+     sit next to each other safely in the share bar. Do not reorder casually.
+     Changing the ids here means changing the check constraint in
+     supabase/schema.sql too. */
   var CATEGORIES = [
     { id: 'food',          label: 'Food',          icon: '\u{1F34E}', color: '#2a78d6' },
     { id: 'bills',         label: 'Bills',         icon: '\u{1F9FE}', color: '#eb6834' },
@@ -99,63 +106,75 @@ window.MyMon = window.MyMon || {};
     return rest.concat(CATEGORIES.filter(function (c) { return c.id === 'other'; }));
   }
 
-  /* ---------- storage ----------------------------------------------------- */
+  /* ---------- the database ------------------------------------------------ */
 
-  var memoryFallback = null;   /* used when localStorage is unavailable */
+  var cache = [];       /* every expense of the signed-in user */
+  var loaded = false;
 
-  function read() {
-    if (memoryFallback) return memoryFallback.slice();
-    var raw;
-    try {
-      raw = window.localStorage.getItem(STORE_KEY);
-    } catch (err) {
-      memoryFallback = [];
-      return [];
-    }
-    if (!raw) return [];
-    try {
-      var parsed = JSON.parse(raw);
-      return Array.isArray(parsed) ? parsed.filter(isWellFormed) : [];
-    } catch (err) {
-      return [];
-    }
+  function table() {
+    var client = NS.session && NS.session.client;
+    if (!client) throw new Error('MyMon is not connected to the database.');
+    return client.from(TABLE);
   }
 
-  function write(list) {
-    try {
-      window.localStorage.setItem(STORE_KEY, JSON.stringify(list));
-    } catch (err) {
-      memoryFallback = list.slice();
-    }
+  /* database row  ->  the shape the rest of the app speaks */
+  function fromRow(row) {
+    return {
+      id: row.id,
+      amount: Number(row.amount),
+      category: row.category,
+      date: row.spent_on,
+      comment: row.comment || '',
+      createdAt: row.created_at
+    };
+  }
+
+  /* ...and back. user_id is left out on purpose: the database fills it in from
+     whoever is signed in, so a browser cannot write a row onto someone else. */
+  function toRow(tx) {
+    return {
+      amount: tx.amount,
+      category: tx.category,
+      spent_on: tx.date,
+      comment: tx.comment || ''
+    };
   }
 
   function isWellFormed(tx) {
     return tx && typeof tx === 'object' &&
-      typeof tx.id === 'string' &&
       typeof tx.amount === 'number' && isFinite(tx.amount) && tx.amount > 0 &&
       !!categoryById(tx.category) &&
       isValidDateKey(tx.date);
   }
 
-  function newId() {
-    if (window.crypto && typeof window.crypto.randomUUID === 'function') {
-      return window.crypto.randomUUID();
-    }
-    return 'tx-' + Date.now().toString(36) + '-' + Math.random().toString(36).slice(2, 8);
-  }
-
   /* Newest first; ties broken by entry order so a correction lands on top. */
-  function sorted(list) {
-    return list.slice().sort(function (a, b) {
+  function sortCache() {
+    cache.sort(function (a, b) {
       if (a.date !== b.date) return a.date < b.date ? 1 : -1;
       return (b.createdAt || '') < (a.createdAt || '') ? -1 : 1;
     });
   }
 
-  function all() { return sorted(read()); }
+  /* Fetch everything once. Called by the dashboard before the first render. */
+  function load() {
+    return table()
+      .select('id, amount, category, spent_on, comment, created_at')
+      .order('spent_on', { ascending: false })
+      .then(function (result) {
+        if (result.error) throw result.error;
+        cache = (result.data || []).map(fromRow);
+        sortCache();
+        loaded = true;
+        return cache.slice();
+      });
+  }
+
+  function isLoaded() { return loaded; }
+
+  function all() { return cache.slice(); }
 
   function forMonth(monthKey) {
-    return all().filter(function (tx) { return monthOf(tx.date) === monthKey; });
+    return cache.filter(function (tx) { return monthOf(tx.date) === monthKey; });
   }
 
   /* ---------- validation --------------------------------------------------
@@ -163,6 +182,9 @@ window.MyMon = window.MyMon || {};
        amount  at least 0.01, never negative, at most two decimals
        date    never in the future, and only this month or last month
        comment optional
+     The database repeats the amount, category and comment rules as constraints,
+     so a bug here cannot write nonsense. The month window stays here only: it
+     depends on today's date, which the database cannot check.
      Returns { ok, errors, value } — errors is keyed by field name. */
 
   function validate(input) {
@@ -222,50 +244,81 @@ window.MyMon = window.MyMon || {};
     return { ok: ok, errors: errors, value: value };
   }
 
-  /* ---------- writes ------------------------------------------------------ */
+  /* ---------- writes ------------------------------------------------------
+     Each one resolves with the same { ok, errors, tx } shape as before, or
+     rejects when the server refuses — the dashboard turns that into a toast. */
 
   function add(input) {
     var result = validate(input);
-    if (!result.ok) return result;
+    if (!result.ok) return Promise.resolve(result);
 
-    var tx = {
-      id: newId(),
-      amount: result.value.amount,
-      category: result.value.category,
-      date: result.value.date,
-      comment: result.value.comment,
-      createdAt: new Date().toISOString()
-    };
-
-    var list = read();
-    list.push(tx);
-    write(list);
-
-    result.tx = tx;
-    return result;
+    return table()
+      .insert(toRow(result.value))
+      .select('id, amount, category, spent_on, comment, created_at')
+      .single()
+      .then(function (response) {
+        if (response.error) throw response.error;
+        var tx = fromRow(response.data);
+        cache.push(tx);
+        sortCache();
+        result.tx = tx;
+        return result;
+      });
   }
 
   function remove(id) {
-    var list = read();
-    var removed = null;
-    var kept = list.filter(function (tx) {
-      if (tx.id === id) { removed = tx; return false; }
-      return true;
-    });
-    write(kept);
-    return removed;
+    var index = -1;
+    for (var i = 0; i < cache.length; i++) {
+      if (cache[i].id === id) { index = i; break; }
+    }
+    if (index === -1) return Promise.resolve(null);
+
+    var removed = cache[index];
+
+    return table()
+      .delete()
+      .eq('id', id)
+      .then(function (response) {
+        if (response.error) throw response.error;
+        cache.splice(index, 1);
+        return removed;
+      });
   }
 
+  /* Undo. The row is written again rather than resurrected, so it comes back
+     with a new id — which nothing in the app depends on. */
   function restore(tx) {
-    if (!isWellFormed(tx)) return false;
-    var list = read();
-    list.push(tx);
-    write(list);
-    return true;
+    if (!isWellFormed(tx)) return Promise.resolve(null);
+
+    return table()
+      .insert(toRow(tx))
+      .select('id, amount, category, spent_on, comment, created_at')
+      .single()
+      .then(function (response) {
+        if (response.error) throw response.error;
+        var restored = fromRow(response.data);
+        cache.push(restored);
+        sortCache();
+        return restored;
+      });
+  }
+
+  function insertMany(rows) {
+    if (!rows.length) return Promise.resolve([]);
+    return table()
+      .insert(rows)
+      .select('id, amount, category, spent_on, comment, created_at')
+      .then(function (response) {
+        if (response.error) throw response.error;
+        var added = (response.data || []).map(fromRow);
+        cache = cache.concat(added);
+        sortCache();
+        return added;
+      });
   }
 
   /* ---------- statistics --------------------------------------------------
-     Everything the dashboard needs for one month, in one pass. */
+     Everything the dashboard needs for one month, in one pass over the cache. */
 
   function statsFor(monthKey) {
     var list = forMonth(monthKey);
@@ -311,10 +364,9 @@ window.MyMon = window.MyMon || {};
 
   /* Oldest month that holds data. */
   function earliestMonth() {
-    var list = read();
-    if (!list.length) return currentMonth();
-    var oldest = list[0].date;
-    list.forEach(function (tx) { if (tx.date < oldest) oldest = tx.date; });
+    if (!cache.length) return currentMonth();
+    var oldest = cache[0].date;
+    cache.forEach(function (tx) { if (tx.date < oldest) oldest = tx.date; });
     var month = monthOf(oldest);
     return month < currentMonth() ? month : currentMonth();
   }
@@ -325,6 +377,48 @@ window.MyMon = window.MyMon || {};
     var earliest = earliestMonth();
     var previous = previousMonth();
     return earliest < previous ? earliest : previous;
+  }
+
+  /* ---------- leftovers from the browser-only version ---------------------
+     Expenses logged before there were accounts still sit in this browser. They
+     are offered on every load until they are imported, and the local copy is
+     dropped once they are safely in the account. */
+
+  function legacyExpenses() {
+    var raw;
+    try {
+      raw = window.localStorage.getItem(LEGACY_KEY);
+    } catch (err) {
+      return [];
+    }
+    if (!raw) return [];
+    try {
+      var parsed = JSON.parse(raw);
+      if (!Array.isArray(parsed)) return [];
+      return parsed
+        .map(function (tx) {
+          return {
+            amount: Number(tx.amount),
+            category: tx.category,
+            date: tx.date,
+            comment: tx.comment || ''
+          };
+        })
+        .filter(isWellFormed);
+    } catch (err) {
+      return [];
+    }
+  }
+
+  function importLegacy() {
+    var rows = legacyExpenses().map(toRow);
+    return insertMany(rows);
+  }
+
+  function forgetLegacy() {
+    try {
+      window.localStorage.removeItem(LEGACY_KEY);
+    } catch (err) { /* nothing to clear */ }
   }
 
   /* A handful of plausible entries so an empty dashboard can be looked at. */
@@ -343,16 +437,18 @@ window.MyMon = window.MyMon || {};
       ['other', 18, 11, '']
     ];
     var floor = previousMonth() + '-01';
+    var rows = [];
+
     picks.forEach(function (pick) {
       var date = new Date();
       date.setDate(date.getDate() - pick[2]);
       var key = toKey(date);
       if (key < floor) return;
-      add({ amount: pick[1], category: pick[0], date: key, comment: pick[3] });
+      rows.push({ amount: pick[1], category: pick[0], spent_on: key, comment: pick[3] });
     });
-  }
 
-  function clearAll() { write([]); }
+    return insertMany(rows);
+  }
 
   NS.data = {
     CATEGORIES: CATEGORIES,
@@ -370,6 +466,8 @@ window.MyMon = window.MyMon || {};
     dayLabel: dayLabel,
     earliestMonth: earliestMonth,
     floorMonth: floorMonth,
+    load: load,
+    isLoaded: isLoaded,
     all: all,
     forMonth: forMonth,
     validate: validate,
@@ -378,6 +476,8 @@ window.MyMon = window.MyMon || {};
     restore: restore,
     statsFor: statsFor,
     seedSample: seedSample,
-    clearAll: clearAll
+    legacyExpenses: legacyExpenses,
+    importLegacy: importLegacy,
+    forgetLegacy: forgetLegacy
   };
 })(window.MyMon);

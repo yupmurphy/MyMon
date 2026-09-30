@@ -1,6 +1,6 @@
 /* MyMon — dashboard.
-   Reads a month out of MyMon.data, paints it, and owns the one action the app
-   has: adding an expense. */
+   Waits for the account, loads the expenses once, then paints months out of
+   memory. Only adding, deleting and undoing have to talk to the server. */
 (function (NS) {
   'use strict';
 
@@ -8,11 +8,8 @@
   var ui = NS.ui;
   var session = NS.session;
 
-  var user = session.require();
-  if (!user) return;                /* redirecting to the landing page */
-
+  var user = null;
   var viewMonth = data.currentMonth();
-
   var dom = {};
 
   /* ---------- helpers ---------- */
@@ -31,6 +28,12 @@
     if (hour < 12) return 'Good morning';
     if (hour < 18) return 'Good afternoon';
     return 'Good evening';
+  }
+
+  /* Anything the server refuses, said in one line. */
+  function fail(what, error) {
+    var detail = error && error.message ? error.message : 'Please try again.';
+    ui.toast(what + ' ' + detail, { duration: 8000 });
   }
 
   /* ---------- render ---------- */
@@ -72,9 +75,7 @@
   }
 
   function renderMonthNav() {
-    dom.monthLabel.textContent = data.monthLabelRelative(viewMonth) === data.monthLabel(viewMonth)
-      ? data.monthLabel(viewMonth)
-      : data.monthLabelRelative(viewMonth);
+    dom.monthLabel.textContent = data.monthLabelRelative(viewMonth);
     dom.monthLabel.title = data.monthLabel(viewMonth);
     dom.monthNext.disabled = viewMonth >= data.currentMonth();
     dom.monthPrev.disabled = viewMonth <= data.floorMonth();
@@ -143,7 +144,7 @@
       ? stats.count + (stats.count === 1 ? ' expense' : ' expenses')
       : '';
 
-    /* The sample-data shortcut only makes sense while the app is truly empty. */
+    /* The sample-data shortcut only makes sense while the account is empty. */
     dom.seedBtn.classList.toggle('hidden', data.all().length > 0);
 
     if (!hasData) {
@@ -211,9 +212,15 @@
     });
   }
 
+  function setSaving(state) {
+    dom.submitBtn.disabled = state;
+    dom.submitBtn.textContent = state ? 'Saving…' : 'Add expense';
+  }
+
   function openDialog() {
     clearErrors();
     dom.form.reset();
+    setSaving(false);
     dom.fieldDate.min = data.previousMonth() + '-01';
     dom.fieldDate.max = data.today();
     dom.fieldDate.value = viewMonth === data.currentMonth()
@@ -241,82 +248,84 @@
   function submit(event) {
     event.preventDefault();
     clearErrors();
+    setSaving(true);
 
     var checked = dom.form.querySelector('input[name="category"]:checked');
-    var result = data.add({
+
+    data.add({
       amount: dom.fieldAmount.value,
       category: checked ? checked.value : '',
       date: dom.fieldDate.value,
       comment: dom.fieldComment.value
+    }).then(function (result) {
+      setSaving(false);
+
+      if (!result.ok) {
+        Object.keys(result.errors).forEach(function (name) {
+          setFieldError(name, result.errors[name]);
+        });
+        var first = dom.form.querySelector('.field--invalid input, .field--invalid textarea');
+        if (first) first.focus();
+        return;
+      }
+
+      closeDialog();
+      viewMonth = data.monthOf(result.tx.date);
+      render();
+      ui.toast('Added ' + ui.money(result.tx.amount) + ' to ' +
+        data.categoryById(result.tx.category).label + '.');
+    }).catch(function (error) {
+      setSaving(false);
+      fail('Could not save that expense.', error);
     });
-
-    if (!result.ok) {
-      Object.keys(result.errors).forEach(function (name) {
-        setFieldError(name, result.errors[name]);
-      });
-      var first = dom.form.querySelector('.field--invalid input, .field--invalid textarea');
-      if (first) first.focus();
-      return;
-    }
-
-    closeDialog();
-    viewMonth = data.monthOf(result.tx.date);
-    render();
-    ui.toast('Added ' + ui.money(result.tx.amount) + ' to ' +
-      data.categoryById(result.tx.category).label + '.');
   }
 
   function removeTransaction(id) {
-    var removed = data.remove(id);
-    if (!removed) return;
-    render();
-    ui.toast('Expense deleted.', {
-      action: 'Undo',
+    data.remove(id).then(function (removed) {
+      if (!removed) return;
+      render();
+      ui.toast('Expense deleted.', {
+        action: 'Undo',
+        onAction: function () {
+          data.restore(removed).then(function () {
+            viewMonth = data.monthOf(removed.date);
+            render();
+          }).catch(function (error) {
+            fail('Could not bring that expense back.', error);
+          });
+        }
+      });
+    }).catch(function (error) {
+      fail('Could not delete that expense.', error);
+    });
+  }
+
+  /* ---------- expenses left in this browser by the old version ---------- */
+
+  function offerLegacyImport() {
+    var pending = data.legacyExpenses();
+    if (!pending.length) return;
+
+    ui.toast(pending.length + ' expense' + (pending.length === 1 ? '' : 's') +
+      ' from before you had an account are still in this browser.', {
+      action: 'Import',
+      duration: 20000,
       onAction: function () {
-        data.restore(removed);
-        viewMonth = data.monthOf(removed.date);
-        render();
+        data.importLegacy().then(function (added) {
+          data.forgetLegacy();
+          render();
+          ui.toast('Imported ' + added.length +
+            (added.length === 1 ? ' expense' : ' expenses') + ' into your account.');
+        }).catch(function (error) {
+          fail('Could not import them.', error);
+        });
       }
     });
   }
 
   /* ---------- wiring ---------- */
 
-  function init() {
-    dom = {
-      greeting: byId('greeting'),
-      summaryLabel: byId('summary-label'),
-      summaryValue: byId('summary-value'),
-      summaryDelta: byId('summary-delta'),
-      monthLabel: byId('month-label'),
-      monthPrev: byId('month-prev'),
-      monthNext: byId('month-next'),
-      statCount: byId('stat-count'),
-      statPerDay: byId('stat-per-day'),
-      statBiggest: byId('stat-biggest'),
-      statBiggestNote: byId('stat-biggest-note'),
-      shareBar: byId('share-bar'),
-      breakdown: byId('breakdown'),
-      breakdownEmpty: byId('breakdown-empty'),
-      breakdownHint: byId('breakdown-hint'),
-      txGroups: byId('tx-groups'),
-      txEmpty: byId('tx-empty'),
-      txHint: byId('tx-hint'),
-      seedBtn: byId('seed-sample'),
-      dialog: byId('add-dialog'),
-      form: byId('add-form'),
-      catGrid: byId('category-grid'),
-      fieldAmount: byId('field-amount'),
-      fieldDate: byId('field-date'),
-      fieldComment: byId('field-comment')
-    };
-
-    ui.mountHeader({ page: 'dashboard' });
-    ui.year();
-    buildCategoryPicker();
-
-    dom.greeting.textContent = greeting() + ', ' + user.name + '.';
-
+  function wire() {
     Array.prototype.forEach.call(document.querySelectorAll('[data-open-add]'), function (btn) {
       btn.addEventListener('click', openDialog);
     });
@@ -348,23 +357,83 @@
     });
 
     dom.seedBtn.addEventListener('click', function () {
-      data.seedSample();
-      viewMonth = data.currentMonth();
-      render();
-      ui.toast('Sample expenses added. Delete any of them whenever you like.');
+      dom.seedBtn.disabled = true;
+      data.seedSample().then(function () {
+        viewMonth = data.currentMonth();
+        render();
+        ui.toast('Sample expenses added. Delete any of them whenever you like.');
+      }).catch(function (error) {
+        dom.seedBtn.disabled = false;
+        fail('Could not add the sample data.', error);
+      });
     });
 
     var signOut = byId('sign-out');
     if (signOut) {
       signOut.addEventListener('click', function () {
-        session.signOut();
-        window.location.href = 'index.html';
+        signOut.disabled = true;
+        session.signOut().then(function () {
+          window.location.href = 'index.html';
+        });
       });
     }
 
     window.addEventListener('scroll', ui.hideTip, { passive: true });
+  }
 
-    render();
+  function init() {
+    dom = {
+      greeting: byId('greeting'),
+      summaryLabel: byId('summary-label'),
+      summaryValue: byId('summary-value'),
+      summaryDelta: byId('summary-delta'),
+      monthLabel: byId('month-label'),
+      monthPrev: byId('month-prev'),
+      monthNext: byId('month-next'),
+      statCount: byId('stat-count'),
+      statPerDay: byId('stat-per-day'),
+      statBiggest: byId('stat-biggest'),
+      statBiggestNote: byId('stat-biggest-note'),
+      shareBar: byId('share-bar'),
+      breakdown: byId('breakdown'),
+      breakdownEmpty: byId('breakdown-empty'),
+      breakdownHint: byId('breakdown-hint'),
+      txGroups: byId('tx-groups'),
+      txEmpty: byId('tx-empty'),
+      txHint: byId('tx-hint'),
+      seedBtn: byId('seed-sample'),
+      dialog: byId('add-dialog'),
+      form: byId('add-form'),
+      submitBtn: byId('add-submit'),
+      catGrid: byId('category-grid'),
+      fieldAmount: byId('field-amount'),
+      fieldDate: byId('field-date'),
+      fieldComment: byId('field-comment')
+    };
+
+    /* The page stays hidden until we know who this is — no flash of someone
+       else's dashboard, no flash of an empty one. */
+    session.require()
+      .then(function (signedIn) {
+        if (!signedIn) return null;
+        user = signedIn;
+        ui.mountHeader({ page: 'dashboard' });
+        ui.year();
+        buildCategoryPicker();
+        wire();
+        dom.greeting.textContent = greeting() + ', ' + user.name + '.';
+        return data.load();
+      })
+      .then(function (loaded) {
+        if (!loaded) return;
+        document.body.classList.remove('booting');
+        render();
+        offerLegacyImport();
+      })
+      .catch(function (error) {
+        document.body.classList.remove('booting');
+        fail('Could not load your expenses.', error);
+      });
   }
 
   if (document.readyState === 'loading') {

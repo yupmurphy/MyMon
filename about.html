@@ -10,7 +10,6 @@
   <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin />
   <link href="https://fonts.googleapis.com/css2?family=Nunito:wght@400;600;700;800;900&display=swap" rel="stylesheet" />
   <link rel="stylesheet" href="style.css" />
-  <script src="js/session.js"></script>
 </head>
 
 <body>
@@ -34,7 +33,7 @@
   <main>
     <section class="section">
       <div class="container container--narrow prose">
-        <p class="eyebrow">Version 1.0</p>
+        <p class="eyebrow">Version 1.1</p>
         <h1>About MyMon</h1>
         <p class="hero__lede">
           MyMon is a small personal expense tracker built for clarity, not for completeness.
@@ -70,7 +69,7 @@
               <li>Friends and shared groups</li>
               <li>Custom categories</li>
               <li>Exports and PDF reports</li>
-              <li>A real server &mdash; that comes next</li>
+              <li>Editing an expense &mdash; delete and add it again</li>
             </ul>
           </div>
         </div>
@@ -78,13 +77,17 @@
         <div class="card" style="margin-top: 1.25rem">
           <h2>Where your data lives</h2>
           <p>
-            Everything is stored in this browser, on this device, using local storage.
-            Nothing is sent anywhere, there is no account and there is no password &mdash;
-            signing in only means MyMon remembers what to call you.
+            Your expenses are stored in a database, under your account, so you see the same
+            numbers on your laptop and on your phone. Clearing your browser no longer
+            costs you anything.
+          </p>
+          <p>
+            You sign in with your Google account. MyMon never sees, asks for or stores a
+            password &mdash; Google confirms who you are, and that is all we get.
           </p>
           <p class="muted" style="margin-bottom: 0">
-            Clearing your browser data clears your expenses with it. A real backend is the
-            next step, and the storage layer is already isolated so it can be swapped in.
+            The database is set up so each row can only be read and written by the person
+            who created it. Nobody else with an account can see your expenses.
           </p>
         </div>
 
@@ -110,15 +113,22 @@
 
   <footer class="site-footer">
     <div class="container">
-      <p>&copy; <span data-year>2026</span> MyMon &mdash; v1.0</p>
+      <p>&copy; <span data-year>2026</span> MyMon &mdash; v1.1</p>
       <p><a href="index.html?stay=1">Back to the landing page</a></p>
     </div>
   </footer>
 
+  <script src="https://cdn.jsdelivr.net/npm/@supabase/supabase-js@2"></script>
+  <script src="js/config.js"></script>
+  <script src="js/session.js"></script>
   <script src="js/ui.js"></script>
   <script>
-    window.MyMon.ui.mountHeader({ page: 'about' });
     window.MyMon.ui.year();
+    /* Wait until we know whether anyone is signed in, then show the right
+       buttons — this page is readable either way. */
+    window.MyMon.session.ready.then(function () {
+      window.MyMon.ui.mountHeader({ page: 'about' });
+    });
   </script>
 </body>
 </html>

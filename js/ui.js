@@ -144,7 +144,22 @@ window.MyMon = window.MyMon || {};
         chip.classList.remove('hidden');
         var avatar = chip.querySelector('.avatar');
         var label = chip.querySelector('[data-user-name]');
-        if (avatar) avatar.textContent = NS.session.initials(user.name);
+        if (avatar) {
+          /* Google usually gives us a picture; initials are the fallback. */
+          if (user.avatar) {
+            avatar.innerHTML = '';
+            var img = new Image();
+            img.src = user.avatar;
+            img.alt = '';
+            img.referrerPolicy = 'no-referrer';
+            img.onerror = function () {
+              avatar.textContent = NS.session.initials(user.name);
+            };
+            avatar.appendChild(img);
+          } else {
+            avatar.textContent = NS.session.initials(user.name);
+          }
+        }
         if (label) label.textContent = user.name;
       } else {
         chip.classList.add('hidden');
