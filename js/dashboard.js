@@ -176,7 +176,12 @@
       '<span class="tx__icon" aria-hidden="true">' + category.icon + '</span>' +
       '<span class="tx__body">' +
         '<span class="tx__cat">' + ui.escapeHtml(category.label) + '</span>' +
-        (tx.comment ? '<span class="tx__note">' + ui.escapeHtml(tx.comment) + '</span>' : '') +
+        /* The note is trimmed with an ellipsis when it is long, so the full
+           text lives in the tooltip as well. */
+        (tx.comment
+          ? '<span class="tx__note" title="' + ui.escapeHtml(tx.comment) + '">' +
+              ui.escapeHtml(tx.comment) + '</span>'
+          : '') +
       '</span>' +
       '<span class="tx__amount">' + ui.escapeHtml(ui.money(tx.amount)) + '</span>' +
       '<button class="tx__remove" type="button" data-remove="' + ui.escapeHtml(tx.id) + '"' +
