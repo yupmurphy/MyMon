@@ -7,10 +7,11 @@
 window.MyMon = window.MyMon || {};
 
 window.MyMon.config = {
-  /* Supabase → Project Settings → Data API → Project URL */
-  supabaseUrl: 'PASTE_PROJECT_URL_HERE',
+  /* Supabase → Project Settings → Data API → Project URL.
+     Just the project address: the library adds /rest/v1 and /auth/v1 itself. */
+  supabaseUrl: 'https://vhktvysiknrgulxltxqr.supabase.co',
 
   /* Supabase → Project Settings → API Keys → the public one
      (named "anon public", or "publishable" on newer projects) */
-  supabaseKey: 'PASTE_PUBLIC_KEY_HERE'
+  supabaseKey: 'sb_publishable_obDbA80Nd7EubJSeJf2d1w_zDno5Lc4'
 };
