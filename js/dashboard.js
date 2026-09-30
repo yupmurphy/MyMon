@@ -12,6 +12,10 @@
   var viewMonth = data.currentMonth();
   var dom = {};
 
+  /* The id of the expense being edited, or null when adding a new one. The
+     dialog is the same either way — only its labels and its ending differ. */
+  var editing = null;
+
   /* ---------- helpers ---------- */
 
   function byId(id) { return document.getElementById(id); }
@@ -184,11 +188,20 @@
           : '') +
       '</span>' +
       '<span class="tx__amount">' + ui.escapeHtml(ui.money(tx.amount)) + '</span>' +
-      '<button class="tx__remove" type="button" data-remove="' + ui.escapeHtml(tx.id) + '"' +
-        ' aria-label="Delete ' + ui.escapeHtml(category.label + ' ' + ui.money(tx.amount)) + '">' +
-        '<svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.2"' +
-        ' stroke-linecap="round" aria-hidden="true"><path d="M6 6l12 12M18 6L6 18"/></svg>' +
-      '</button>' +
+      '<span class="tx__tools">' +
+        '<button class="tx__tool" type="button" data-edit="' + ui.escapeHtml(tx.id) + '"' +
+          ' aria-label="Edit ' + ui.escapeHtml(category.label + ' ' + ui.money(tx.amount)) + '">' +
+          '<svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"' +
+          ' stroke-linecap="round" stroke-linejoin="round" aria-hidden="true">' +
+          '<path d="M4 20h4L19 9a2.8 2.8 0 0 0-4-4L4 16v4z"/><path d="M14 6l4 4"/></svg>' +
+        '</button>' +
+        '<button class="tx__tool tx__tool--danger" type="button" data-remove="' +
+          ui.escapeHtml(tx.id) + '"' +
+          ' aria-label="Delete ' + ui.escapeHtml(category.label + ' ' + ui.money(tx.amount)) + '">' +
+          '<svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.2"' +
+          ' stroke-linecap="round" aria-hidden="true"><path d="M6 6l12 12M18 6L6 18"/></svg>' +
+        '</button>' +
+      '</span>' +
     '</li>';
   }
 
@@ -227,22 +240,63 @@
 
   function setSaving(state) {
     dom.submitBtn.disabled = state;
-    dom.submitBtn.textContent = state ? 'Saving…' : 'Add expense';
+    dom.submitBtn.textContent = state
+      ? 'Saving…'
+      : (editing ? 'Save changes' : 'Add expense');
   }
 
-  function openDialog() {
+  function pickCategory(id) {
+    var option = dom.form.querySelector('input[name="category"][value="' + id + '"]');
+    if (option) option.checked = true;
+  }
+
+  /* Called with no argument to add, or with an expense to change it. */
+  function openDialog(tx) {
+    editing = tx ? tx.id : null;
+
     clearErrors();
     dom.form.reset();
-    setSaving(false);
     updateCommentCount();
-    dom.fieldDate.min = data.previousMonth() + '-01';
+
+    dom.title.textContent = editing ? 'Edit expense' : 'Add expense';
+    dom.subtitle.textContent = editing
+      ? 'Change anything here and the same expense is updated.'
+      : 'This month or last month, nothing in the future.';
+
     dom.fieldDate.max = data.today();
-    dom.fieldDate.value = viewMonth === data.currentMonth()
-      ? data.today()
-      : lastLoggableDayOf(viewMonth);
+
+    if (editing) {
+      dom.fieldAmount.value = tx.amount;
+      pickCategory(tx.category);
+      dom.fieldDate.value = tx.date;
+      dom.fieldComment.value = tx.comment || '';
+      updateCommentCount();
+
+      /* An expense older than the usual window keeps its own date as a valid
+         choice — editing the comment must not force the date to move. */
+      var floor = data.previousMonth() + '-01';
+      dom.fieldDate.min = tx.date < floor ? tx.date : floor;
+    } else {
+      dom.fieldDate.min = data.previousMonth() + '-01';
+      dom.fieldDate.value = viewMonth === data.currentMonth()
+        ? data.today()
+        : lastLoggableDayOf(viewMonth);
+    }
+
+    setSaving(false);
+
     if (typeof dom.dialog.showModal === 'function') dom.dialog.showModal();
     else dom.dialog.setAttribute('open', '');
     window.setTimeout(function () { dom.fieldAmount.focus(); }, 30);
+  }
+
+  function openEditDialog(id) {
+    var tx = data.find(id);
+    if (!tx) {
+      ui.toast('That expense is not here any more.');
+      return;
+    }
+    openDialog(tx);
   }
 
   /* When browsing last month, pre-fill its last day rather than today's date. */
@@ -265,13 +319,17 @@
     setSaving(true);
 
     var checked = dom.form.querySelector('input[name="category"]:checked');
-
-    data.add({
+    var input = {
       amount: dom.fieldAmount.value,
       category: checked ? checked.value : '',
       date: dom.fieldDate.value,
       comment: dom.fieldComment.value
-    }).then(function (result) {
+    };
+
+    var changing = editing;
+    var write = changing ? data.update(changing, input) : data.add(input);
+
+    write.then(function (result) {
       setSaving(false);
 
       if (!result.ok) {
@@ -286,11 +344,14 @@
       closeDialog();
       viewMonth = data.monthOf(result.tx.date);
       render();
-      ui.toast('Added ' + ui.money(result.tx.amount) + ' to ' +
-        data.categoryById(result.tx.category).label + '.');
+
+      var label = data.categoryById(result.tx.category).label;
+      ui.toast(changing
+        ? 'Updated to ' + ui.money(result.tx.amount) + ' in ' + label + '.'
+        : 'Added ' + ui.money(result.tx.amount) + ' to ' + label + '.');
     }).catch(function (error) {
       setSaving(false);
-      fail('Could not save that expense.', error);
+      fail(changing ? 'Could not save that change.' : 'Could not save that expense.', error);
     });
   }
 
@@ -341,7 +402,7 @@
 
   function wire() {
     Array.prototype.forEach.call(document.querySelectorAll('[data-open-add]'), function (btn) {
-      btn.addEventListener('click', openDialog);
+      btn.addEventListener('click', function () { openDialog(); });
     });
 
     dom.monthPrev.addEventListener('click', function () {
@@ -366,9 +427,14 @@
       if (event.target === dom.dialog) closeDialog();
     });
 
+    /* One listener for the whole list, so rows redrawn on every render do not
+       each need wiring up again. */
     dom.txGroups.addEventListener('click', function (event) {
-      var button = event.target.closest('[data-remove]');
-      if (button) removeTransaction(button.dataset.remove);
+      var remove = event.target.closest('[data-remove]');
+      if (remove) { removeTransaction(remove.dataset.remove); return; }
+
+      var edit = event.target.closest('[data-edit]');
+      if (edit) openEditDialog(edit.dataset.edit);
     });
 
     dom.seedBtn.addEventListener('click', function () {
@@ -420,6 +486,8 @@
       txHint: byId('tx-hint'),
       seedBtn: byId('seed-sample'),
       dialog: byId('add-dialog'),
+      title: byId('add-title'),
+      subtitle: byId('add-subtitle'),
       form: byId('add-form'),
       submitBtn: byId('add-submit'),
       catGrid: byId('category-grid'),

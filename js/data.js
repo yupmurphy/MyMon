@@ -187,9 +187,14 @@ window.MyMon = window.MyMon || {};
      depends on today's date, which the database cannot check.
      Returns { ok, errors, value } — errors is keyed by field name. */
 
-  function validate(input) {
+  /* `allowDate` is the date an expense already has. Editing one must never be
+     blocked by the window rule below just for leaving its own date alone. */
+  function validate(input, allowDate) {
     var errors = {};
     var value = {};
+
+    /* The limits are written in whatever currency the person chose. */
+    var write = (NS.ui && NS.ui.money) ? NS.ui.money : function (n) { return '$' + n; };
 
     var rawAmount = String(input.amount == null ? '' : input.amount).trim().replace(',', '.');
     if (rawAmount === '') {
@@ -203,9 +208,9 @@ window.MyMon = window.MyMon || {};
       if (!isFinite(amount)) {
         errors.amount = 'That is not a number.';
       } else if (amount < MIN_AMOUNT) {
-        errors.amount = 'The amount has to be at least $0.01.';
+        errors.amount = 'The amount has to be at least ' + write(MIN_AMOUNT) + '.';
       } else if (amount > MAX_AMOUNT) {
-        errors.amount = 'That is over the $999,999.99 limit.';
+        errors.amount = 'That is over the ' + write(MAX_AMOUNT) + ' limit.';
       } else {
         value.amount = Math.round(amount * 100) / 100;
       }
@@ -226,7 +231,8 @@ window.MyMon = window.MyMon || {};
       errors.date = 'That date does not exist.';
     } else if (date > today()) {
       errors.date = 'The date cannot be in the future.';
-    } else if (monthOf(date) !== currentMonth() && monthOf(date) !== previousMonth()) {
+    } else if (date !== allowDate &&
+               monthOf(date) !== currentMonth() && monthOf(date) !== previousMonth()) {
       errors.date = 'In v1 you can only log this month or last month.';
     } else {
       value.date = date;
@@ -260,6 +266,41 @@ window.MyMon = window.MyMon || {};
         if (response.error) throw response.error;
         var tx = fromRow(response.data);
         cache.push(tx);
+        sortCache();
+        result.tx = tx;
+        return result;
+      });
+  }
+
+  function find(id) {
+    for (var i = 0; i < cache.length; i++) {
+      if (cache[i].id === id) return cache[i];
+    }
+    return null;
+  }
+
+  /* Editing rewrites the row in place, so the expense keeps its id — unlike
+     undo, which writes a fresh one. Once expenses can carry comments from
+     friends, that id is what those comments will hang on. */
+  function update(id, input) {
+    var current = find(id);
+    if (!current) return Promise.reject(new Error('That expense is no longer here.'));
+
+    var result = validate(input, current.date);
+    if (!result.ok) return Promise.resolve(result);
+
+    return table()
+      .update(toRow(result.value))
+      .eq('id', id)
+      .select('id, amount, category, spent_on, comment, created_at')
+      .single()
+      .then(function (response) {
+        if (response.error) throw response.error;
+
+        var tx = fromRow(response.data);
+        for (var i = 0; i < cache.length; i++) {
+          if (cache[i].id === id) { cache[i] = tx; break; }
+        }
         sortCache();
         result.tx = tx;
         return result;
@@ -471,7 +512,9 @@ window.MyMon = window.MyMon || {};
     all: all,
     forMonth: forMonth,
     validate: validate,
+    find: find,
     add: add,
+    update: update,
     remove: remove,
     restore: restore,
     statsFor: statsFor,

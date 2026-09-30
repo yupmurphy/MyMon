@@ -79,6 +79,7 @@ window.MyMon = window.MyMon || {};
       firstName: first,
       lastName: last,
       googleName: meta.full_name || meta.name || '',
+      currency: String(meta.currency || '').toUpperCase(),
       name: chosen || meta.full_name || meta.name || email.split('@')[0] || 'there',
       avatar: meta.avatar_url || meta.picture || ''
     };
@@ -95,6 +96,22 @@ window.MyMon = window.MyMon || {};
         first_name: String(firstName || '').trim().slice(0, 40),
         last_name: String(lastName || '').trim().slice(0, 40)
       }
+    }).then(function (result) {
+      if (result.error) throw result.error;
+      currentUser = result.data.user;
+      listeners.forEach(function (fn) { fn(profile()); });
+      return profile();
+    });
+  }
+
+  /* Which currency amounts are written in. It sits beside the display name
+     for the same reason: it is a label, it grants no permission, and putting
+     it on the account means the phone and the laptop agree. */
+  function updateCurrency(code) {
+    if (!client) return Promise.reject(new Error('MyMon is not connected.'));
+
+    return client.auth.updateUser({
+      data: { currency: String(code || '').trim().toUpperCase().slice(0, 3) }
     }).then(function (result) {
       if (result.error) throw result.error;
       currentUser = result.data.user;
@@ -175,6 +192,7 @@ window.MyMon = window.MyMon || {};
     get: get,
     onChange: onChange,
     updateName: updateName,
+    updateCurrency: updateCurrency,
     signInWithGoogle: signInWithGoogle,
     signOut: signOut,
     require: require,

@@ -1007,7 +1007,12 @@ a.user-chip:hover { border-color: var(--brand-300); background: var(--brand-050)
   white-space: nowrap;
 }
 
-.tx__remove {
+.tx__tools {
+  display: flex;
+  gap: .15rem;
+}
+
+.tx__tool {
   width: 30px; height: 30px;
   display: grid;
   place-items: center;
@@ -1019,13 +1024,17 @@ a.user-chip:hover { border-color: var(--brand-300); background: var(--brand-050)
   opacity: 0;
   transition: opacity .15s ease, color .15s ease, background-color .15s ease;
 }
-.tx:hover .tx__remove,
-.tx__remove:focus-visible { opacity: 1; }
-.tx__remove:hover { background: #fdecec; color: var(--danger); }
-.tx__remove svg { width: 15px; height: 15px; }
+/* The tools stay out of the way until the row is pointed at, but a keyboard
+   user has no pointer — reaching one with Tab has to reveal it. */
+.tx:hover .tx__tool,
+.tx__tool:focus-visible { opacity: 1; }
+.tx__tool:hover { background: var(--brand-050); color: var(--brand-700); }
+.tx__tool--danger:hover { background: #fdecec; color: var(--danger); }
+.tx__tool svg { width: 15px; height: 15px; }
 
+/* Nothing hovers on a touch screen, so there they are simply always visible. */
 @media (hover: none) {
-  .tx__remove { opacity: 1; }
+  .tx__tool { opacity: 1; }
 }
 
 /* ---------- 7. Charts ---------- */

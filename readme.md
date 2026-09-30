@@ -1,4 +1,4 @@
-# MyMon — v1.1
+# MyMon — v1.1.3
 
 MyMon is a simple personal expense tracker focused on clarity, not complexity.
 
@@ -8,6 +8,10 @@ MyMon is a simple personal expense tracker focused on clarity, not complexity.
 **Status: v1 is built, and it now has real accounts.** Everything in the scope below is
 implemented. You sign in with Google and your expenses live in a database, so the same
 numbers follow you from laptop to phone.
+
+Since then: a currency of your choice, expenses you can edit rather than delete and
+retype, and the Supabase library kept in this repository so a content network going
+down cannot stop MyMon from starting.
 
 ---
 
@@ -28,7 +32,7 @@ will not work any more; signing in needs a real address to return to.
 ```
 index.html           landing page (public)
 dashboard.html       the app (signed in)
-settings.html        your name and your account
+settings.html        your name, your username, your currency
 about.html           what v1 does and does not do
 style.css            design tokens + every component
 js/config.js         which Supabase project to talk to
@@ -38,7 +42,11 @@ js/ui.js             money formatting, toasts, chart tooltips, header
 js/landing.js        landing page behaviour
 js/dashboard.js      the dashboard
 js/settings.js       the settings page
+js/profile.js        the username: validating, checking, claiming it
+js/install.js        the install button, which differs per browser
 supabase/schema.sql  the table and the access rules, to run once per project
+supabase/profiles.sql usernames: the table, its rules, and the availability check
+vendor/supabase.js   the Supabase library, kept here so no CDN can take MyMon down
 manifest.webmanifest what the phone needs to install MyMon
 sw.js                service worker: installable, and it opens on a bad line
 icon-*.png           app icons, drawn from the logo

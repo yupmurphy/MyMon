@@ -5,24 +5,83 @@ window.MyMon = window.MyMon || {};
 (function (NS) {
   'use strict';
 
-  var currency = new Intl.NumberFormat('en-US', {
-    style: 'currency',
-    currency: 'USD',
-    minimumFractionDigits: 2,
-    maximumFractionDigits: 2
-  });
+  /* ---------- money ----------
+     An amount is stored as a plain number. The currency is only how that
+     number is written down, which is why switching it relabels what is
+     already saved and never converts it. */
+
+  var CURRENCIES = [
+    { code: 'USD', label: 'US dollar' },
+    { code: 'EUR', label: 'Euro' },
+    { code: 'MDL', label: 'Moldovan leu' },
+    { code: 'RON', label: 'Romanian leu' },
+    { code: 'GBP', label: 'British pound' },
+    { code: 'UAH', label: 'Ukrainian hryvnia' }
+  ];
+
+  var DEFAULT_CURRENCY = 'USD';
+  var code = DEFAULT_CURRENCY;
+  var withCents = null;
+  var whole = null;
+  var symbol = '$';
+
+  function isKnownCurrency(value) {
+    for (var i = 0; i < CURRENCIES.length; i++) {
+      if (CURRENCIES[i].code === value) return true;
+    }
+    return false;
+  }
+
+  /* Intl throws on a currency it does not know, so only vetted codes get here. */
+  function buildFormatters() {
+    function make(decimals) {
+      return new Intl.NumberFormat('en-US', {
+        style: 'currency',
+        currency: code,
+        minimumFractionDigits: decimals,
+        maximumFractionDigits: decimals
+      });
+    }
+
+    withCents = make(2);
+    whole = make(0);
+
+    /* Rather than keep a table of symbols, ask the formatter what it uses —
+       it already knows, and it stays right for currencies added later. */
+    symbol = code;
+    var parts = withCents.formatToParts(0);
+    for (var i = 0; i < parts.length; i++) {
+      if (parts[i].type === 'currency') { symbol = parts[i].value; break; }
+    }
+  }
+
+  /* Anything unknown, empty or missing falls back to the dollar the app
+     shipped with, so a bad stored value can never leave amounts unreadable. */
+  function setCurrency(value) {
+    var wanted = String(value || '').trim().toUpperCase();
+    code = isKnownCurrency(wanted) ? wanted : DEFAULT_CURRENCY;
+    buildFormatters();
+
+    var slots = document.querySelectorAll('[data-currency-symbol]');
+    Array.prototype.forEach.call(slots, function (slot) {
+      slot.textContent = symbol;
+    });
+
+    return code;
+  }
 
   /* $1,284.50 */
   function money(value) {
-    return currency.format(Number(value) || 0);
+    return withCents.format(Number(value) || 0);
   }
 
   /* $1,285 — for headline figures where cents are noise */
   function moneyShort(value) {
     var n = Number(value) || 0;
-    if (Math.round(n) === n) return '$' + n.toLocaleString('en-US');
-    return money(n);
+    return Math.round(n) === n ? whole.format(n) : withCents.format(n);
   }
+
+  buildFormatters();
 
   function percent(value) {
     var n = Number(value) || 0;
@@ -208,9 +267,21 @@ window.MyMon = window.MyMon || {};
 
   registerWorker();
 
+  /* Every page loads this file after session.js and renders only once the
+     session has settled, so the chosen currency is in place before the first
+     amount is written. A sign-in or a change in Settings re-runs it. */
+  if (NS.session) {
+    NS.session.ready.then(function (user) { setCurrency(user && user.currency); });
+    NS.session.onChange(function (user) { setCurrency(user && user.currency); });
+  }
+
   NS.ui = {
     money: money,
     moneyShort: moneyShort,
+    currencies: CURRENCIES,
+    currencyCode: function () { return code; },
+    currencySymbol: function () { return symbol; },
+    setCurrency: setCurrency,
     percent: percent,
     escapeHtml: escapeHtml,
     el: el,

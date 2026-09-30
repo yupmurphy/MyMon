@@ -96,6 +96,53 @@
     });
   }
 
+  /* ---------- currency ---------- */
+
+  function buildCurrencyPicker() {
+    dom.currency.innerHTML = ui.currencies.map(function (item) {
+      return '<option value="' + item.code + '">' +
+        ui.escapeHtml(item.label + ' (' + item.code + ')') + '</option>';
+    }).join('');
+    dom.currency.value = ui.currencyCode();
+  }
+
+  /* Shows the choice in the only way that really answers the question:
+     a real amount, written the way the dashboard would write it. */
+  function renderCurrencyPreview() {
+    var chosen = dom.currency.value;
+    var sample = new Intl.NumberFormat('en-US', {
+      style: 'currency', currency: chosen,
+      minimumFractionDigits: 2, maximumFractionDigits: 2
+    }).format(1284.5);
+
+    dom.currencyPreview.textContent = 'Amounts will look like ' + sample + '.';
+  }
+
+  function saveCurrency(event) {
+    event.preventDefault();
+
+    var chosen = dom.currency.value;
+    dom.currencySave.disabled = true;
+    dom.currencySave.textContent = 'Saving…';
+
+    session.updateCurrency(chosen).then(function (updated) {
+      user = updated;
+      dom.currencySave.disabled = false;
+      dom.currencySave.textContent = 'Save';
+
+      /* onChange has already told ui to switch; the page just has to redraw
+         the amounts it had written in the old one. */
+      renderAccount();
+      renderCurrencyPreview();
+      ui.toast('Amounts are now written in ' + ui.currencyCode() + '.');
+    }).catch(function (error) {
+      dom.currencySave.disabled = false;
+      dom.currencySave.textContent = 'Save';
+      ui.toast('Could not save that. ' +
+        (error && error.message ? error.message : 'Please try again.'), { duration: 8000 });
+    });
+  }
+
   /* ---------- username ---------- */
 
   var claimed = null;        /* the name already saved, if any */
@@ -208,7 +255,11 @@
       username: byId('field-username'),
       userForm: byId('username-form'),
       userSave: byId('username-save'),
-      userStatus: byId('username-status')
+      userStatus: byId('username-status'),
+      currency: byId('field-currency'),
+      currencyForm: byId('currency-form'),
+      currencySave: byId('currency-save'),
+      currencyPreview: byId('currency-preview')
     };
 
     session.require()
@@ -241,6 +292,11 @@
             });
           });
         }
+
+        buildCurrencyPicker();
+        renderCurrencyPreview();
+        dom.currencyForm.addEventListener('submit', saveCurrency);
+        dom.currency.addEventListener('change', renderCurrencyPreview);
 
         dom.userForm.addEventListener('submit', saveUsername);
         dom.username.addEventListener('input', checkAvailability);

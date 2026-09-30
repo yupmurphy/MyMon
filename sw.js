@@ -6,7 +6,7 @@
    It never touches anything that is not served from this site, so requests to
    Supabase, Google and the CDN pass straight through untouched. */
 
-var VERSION = 'mymon-v1.1.5';   /* its own counter — only has to change, not match the app version */
+var VERSION = 'mymon-v1.1.6';   /* its own counter — only has to change, not match the app version */
 
 /* The pages and files worth having ready before they are asked for. */
 var SHELL = [
@@ -16,6 +16,7 @@ var SHELL = [
   'settings.html',
   'about.html',
   'style.css',
+  'vendor/supabase.js',
   'js/config.js',
   'js/session.js',
   'js/data.js',
