@@ -1144,6 +1144,12 @@ body.booting .booting-veil {
   color: var(--danger);
 }
 
+.notice--ok {
+  background: var(--brand-100);
+  border: 1px solid var(--brand-300);
+  color: var(--brand-700);
+}
+
 /* Google hands us a profile picture; it replaces the initials. */
 .avatar { overflow: hidden; }
 .avatar img {

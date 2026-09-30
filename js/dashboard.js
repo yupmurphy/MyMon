@@ -373,7 +373,9 @@
       signOut.addEventListener('click', function () {
         signOut.disabled = true;
         session.signOut().then(function () {
-          window.location.href = 'index.html';
+          /* The landing page says so out loud, otherwise signing out feels
+             like nothing happened. */
+          window.location.href = 'index.html?signedout=1';
         });
       });
     }

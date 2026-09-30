@@ -44,6 +44,15 @@
     var setup = session.setupProblem();
     if (setup) showProblem(setup);
 
+    /* Arriving straight from the sign out button. */
+    if (window.location.search.indexOf('signedout=1') !== -1) {
+      var done = document.getElementById('signed-out');
+      if (done) done.classList.remove('hidden');
+      if (window.history.replaceState) {
+        window.history.replaceState({}, '', 'index.html');
+      }
+    }
+
     /* Someone already signed in who lands here goes straight to the app. */
     session.redirectIfSignedIn().then(function () {
       ui.mountHeader({ page: 'home' });
