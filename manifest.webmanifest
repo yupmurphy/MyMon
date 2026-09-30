@@ -9,6 +9,23 @@
   "orientation": "portrait",
   "background_color": "#f7faf7",
   "theme_color": "#3d8a45",
+
+  "//related_applications": "Lets the site ask the browser whether MyMon is already installed here, through navigator.getInstalledRelatedApps(). The URL has to be absolute, so it names the published address; on localhost the answer is simply no.",
+  "related_applications": [
+    {
+      "platform": "webapp",
+      "url": "https://yupmurphy.github.io/MyMon/manifest.webmanifest"
+    }
+  ],
+  "prefer_related_applications": false,
+
+  "//protocol_handlers": "Registered with the operating system when MyMon is installed. It is the only way a page in a browser tab can hand over to the installed app — there is no API for launching one directly.",
+  "protocol_handlers": [
+    {
+      "protocol": "web+mymon",
+      "url": "dashboard.html?via=%s"
+    }
+  ],
   "icons": [
     {
       "src": "icon-192.png",
