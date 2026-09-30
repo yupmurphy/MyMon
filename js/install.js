@@ -26,6 +26,16 @@
     return window.navigator.platform === 'MacIntel' && window.navigator.maxTouchPoints > 1;
   }
 
+  /* Chrome offers to install on a desktop too, and installing there is worth
+     having — the app gets its own window and its own entry in the menu. But it
+     is a different promise from the one a phone gets, so it needs its own
+     words. The primary pointer is what separates them: a finger is coarse, a
+     mouse is fine, and a laptop with a touchscreen still answers "fine". */
+  function isTouchDevice() {
+    if (window.matchMedia && window.matchMedia('(pointer: coarse)').matches) return true;
+    return window.navigator.maxTouchPoints > 1;
+  }
+
   function init() {
     var band = byId('install-band');
     var button = byId('install-btn');
@@ -41,8 +51,17 @@
     function offerBrowserInstall() {
       mode = 'prompt';
       button.textContent = 'Install app';
-      title.textContent = 'Keep MyMon on your phone';
-      copy.textContent = 'It gets its own icon and opens without the browser bar, like any other app.';
+
+      if (isTouchDevice()) {
+        title.textContent = 'Keep MyMon on your phone';
+        copy.textContent = 'It gets its own icon and opens without the browser bar, ' +
+          'like any other app.';
+      } else {
+        title.textContent = 'Install MyMon on this computer';
+        copy.textContent = 'It opens in its own window — no tabs, no address bar — ' +
+          'and sits with your other apps.';
+      }
+
       band.classList.remove('hidden');
     }
 
