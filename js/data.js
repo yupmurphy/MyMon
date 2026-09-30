@@ -390,6 +390,40 @@ window.MyMon = window.MyMon || {};
 
   function round2(n) { return Math.round(n * 100) / 100; }
 
+  /* Rounding each share on its own is what makes 62.5% and 37.5% print as
+     63% and 38% — a chart that adds up to 101%.
+
+     So the whole-number shares are handed out rather than rounded: everyone
+     gets the whole part of theirs, and the points left over go to whoever was
+     cut back hardest. That is the largest-remainder method, and it always
+     totals exactly 100.
+
+     A share too small to earn a whole point ends at zero, and the dashboard
+     prints that as "<1%" rather than "0%" — true, and it leaves the numbers
+     that do carry a figure adding to exactly 100. Rounding it up to 1% instead
+     would have to take that point from the largest category, which is a worse
+     lie than the one it fixes.
+
+     The exact fraction stays on `percent` for the bar widths, which have no
+     reason to round at all. */
+  function shareOutPercent(rows) {
+    if (!rows.length) return;
+
+    var left = 100;
+    rows.forEach(function (row) {
+      row.shown = Math.floor(row.percent);
+      left -= row.shown;
+    });
+
+    var byRemainder = rows.slice().sort(function (a, b) {
+      return (b.percent - b.shown) - (a.percent - a.shown);
+    });
+
+    for (var i = 0; i < byRemainder.length && left > 0; i++, left--) {
+      byRemainder[i].shown += 1;
+    }
+  }
+
   /* Everything a month can say about one currency. Totals and percentages only
      mean something inside a single currency — 800 lei plus 20 dollars is not
      820 of anything — so the sums never cross from one to another. */
@@ -416,6 +450,8 @@ window.MyMon = window.MyMon || {};
           percent: total > 0 ? (sum / total) * 100 : 0
         };
       });
+
+    shareOutPercent(byCategory);
 
     var days = {};
     list.forEach(function (tx) { days[tx.date] = true; });

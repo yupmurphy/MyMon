@@ -98,12 +98,6 @@ window.MyMon = window.MyMon || {};
       : formatter(target, 2).format(n);
   }
 
-  function percent(value) {
-    var n = Number(value) || 0;
-    if (n > 0 && n < 1) return '<1%';
-    return Math.round(n) + '%';
-  }
-
   function escapeHtml(value) {
     return String(value == null ? '' : value)
       .replace(/&/g, '&amp;')
@@ -299,7 +293,6 @@ window.MyMon = window.MyMon || {};
     cleanCurrency: cleanCurrency,
     setCurrency: setCurrency,
     showSymbol: showSymbol,
-    percent: percent,
     escapeHtml: escapeHtml,
     el: el,
     toast: toast,

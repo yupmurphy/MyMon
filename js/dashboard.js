@@ -182,14 +182,17 @@
 
     var money = function (value) { return ui.money(value, part.currency); };
 
+    /* A slice too thin to earn a whole point says so, instead of '0%'. */
+    var share = function (row) { return row.shown === 0 ? '<1%' : row.shown + '%'; };
+
     /* Share bar — segments stay in the palette's validated order. */
     dom.shareBar.innerHTML = byCategory.map(function (row) {
       return '<div class="share-bar__seg" tabindex="0" role="img"' +
         ' style="--dot: ' + row.category.color + '; flex: ' + row.percent.toFixed(4) + '"' +
         ' data-tip="' + ui.escapeHtml(row.category.label + ' · ' + money(row.total) +
-          ' · ' + ui.percent(row.percent)) + '"' +
+          ' · ' + share(row)) + '"' +
         ' aria-label="' + ui.escapeHtml(row.category.label + ', ' + money(row.total) +
-          ', ' + ui.percent(row.percent)) + '"></div>';
+          ', ' + share(row)) + '"></div>';
     }).join('');
 
     /* Written breakdown, biggest first. Every bar carries its own name, amount
@@ -202,7 +205,7 @@
           '<span class="breakdown__dot" aria-hidden="true"></span>' +
           '<span class="breakdown__name">' + ui.escapeHtml(row.category.label) + '</span>' +
           '<span class="breakdown__amount">' + ui.escapeHtml(money(row.total)) + '</span>' +
-          '<span class="breakdown__pct">' + ui.escapeHtml(ui.percent(row.percent)) + '</span>' +
+          '<span class="breakdown__pct">' + ui.escapeHtml(share(row)) + '</span>' +
         '</div>' +
         '<div class="breakdown__track">' +
           '<div class="breakdown__fill" style="width: ' + row.percent.toFixed(2) + '%"></div>' +
