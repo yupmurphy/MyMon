@@ -182,8 +182,11 @@
 
     var money = function (value) { return ui.money(value, part.currency); };
 
-    /* A slice too thin to earn a whole point says so, instead of '0%'. */
-    var share = function (row) { return row.shown === 0 ? '<1%' : row.shown + '%'; };
+    /* Always one decimal, so a column of them lines up on the point; a slice
+       too thin to earn even a tenth says so rather than printing '0.0%'. */
+    var share = function (row) {
+      return row.shown === 0 ? '<0.1%' : row.shown.toFixed(1) + '%';
+    };
 
     /* Share bar — segments stay in the palette's validated order. */
     dom.shareBar.innerHTML = byCategory.map(function (row) {

@@ -1025,12 +1025,17 @@ a.user-chip:hover { border-color: var(--brand-300); background: var(--brand-050)
 
 .tx__body { min-width: 0; display: block; }
 
+/* The note already trimmed itself; the category name did not, so on a narrow
+   phone "Entertainment" ran straight under the amount beside it. */
 .tx__cat {
   display: block;
   font-weight: 800;
   color: var(--ink-900);
   font-size: .95rem;
   line-height: 1.35;
+  overflow: hidden;
+  text-overflow: ellipsis;
+  white-space: nowrap;
 }
 
 .tx__note {
@@ -1122,10 +1127,14 @@ a.user-chip:hover { border-color: var(--brand-300); background: var(--brand-050)
 
 .breakdown__name { font-weight: 800; color: var(--ink-900); }
 .breakdown__amount { font-weight: 800; color: var(--ink-900); font-variant-numeric: tabular-nums; }
+/* One decimal is two characters more than a whole number, so this steps down
+   a size to buy the room back. Tabular figures plus a fixed width line the
+   decimal points up down the column. */
 .breakdown__pct {
-  min-width: 4.5ch;
+  min-width: 5.5ch;
   text-align: right;
   color: var(--ink-400);
+  font-size: .85rem;
   font-weight: 700;
   font-variant-numeric: tabular-nums;
 }
@@ -1312,6 +1321,21 @@ dialog.modal[open] { animation: pop .18s cubic-bezier(.22, .61, .36, 1); }
   .icon-btn { width: 34px; height: 34px; }
   .modal__foot { padding: 1rem; }
   .toast-stack { bottom: 16px; }
+
+  /* On a phone the row runs out of width: an icon, a category name, an amount
+     carrying a three-letter currency, and two buttons do not fit on one line,
+     and the name was the part that lost. So the amount drops underneath the
+     name instead, which gives the name the whole width and costs nothing —
+     the row was already two lines tall wherever there is a note. */
+  .tx {
+    grid-template-columns: auto minmax(0, 1fr) auto;
+    column-gap: .7rem;
+    row-gap: .1rem;
+  }
+  .tx__icon { grid-row: 1 / span 2; }
+  .tx__body { grid-column: 2; grid-row: 1; }
+  .tx__amount { grid-column: 2; grid-row: 2; }
+  .tx__tools { grid-column: 3; grid-row: 1 / span 2; }
 }
 
 /* ---------- 10. Signing in and waiting ---------- */

@@ -398,30 +398,35 @@ window.MyMon = window.MyMon || {};
      cut back hardest. That is the largest-remainder method, and it always
      totals exactly 100.
 
-     A share too small to earn a whole point ends at zero, and the dashboard
-     prints that as "<1%" rather than "0%" — true, and it leaves the numbers
-     that do carry a figure adding to exactly 100. Rounding it up to 1% instead
-     would have to take that point from the largest category, which is a worse
-     lie than the one it fixes.
+     The handing out happens in tenths, so the figures carry one decimal: 62.5%
+     and 37.5% are what those two really are, and printing 63% and 38% was
+     throwing away a digit that fits on the line perfectly well. A decimal on
+     its own would not have been enough — a third of something is 33.3%, and
+     three of those make 99.9 — so the method still does the work; the decimal
+     only makes it accurate as well as consistent.
 
-     The exact fraction stays on `percent` for the bar widths, which have no
-     reason to round at all. */
+     A share too thin to earn even a tenth ends at zero, and the dashboard
+     prints that as "<0.1%" rather than "0.0%". The exact fraction stays on
+     `percent` for the bar widths, which have no reason to round at all. */
   function shareOutPercent(rows) {
     if (!rows.length) return;
 
-    var left = 100;
+    /* Whole tenths of a percent — integers, so nothing here can drift. */
+    var left = 1000;
     rows.forEach(function (row) {
-      row.shown = Math.floor(row.percent);
-      left -= row.shown;
+      row.tenths = Math.floor(row.percent * 10);
+      left -= row.tenths;
     });
 
     var byRemainder = rows.slice().sort(function (a, b) {
-      return (b.percent - b.shown) - (a.percent - a.shown);
+      return (b.percent * 10 - b.tenths) - (a.percent * 10 - a.tenths);
     });
 
     for (var i = 0; i < byRemainder.length && left > 0; i++, left--) {
-      byRemainder[i].shown += 1;
+      byRemainder[i].tenths += 1;
     }
+
+    rows.forEach(function (row) { row.shown = row.tenths / 10; });
   }
 
   /* Everything a month can say about one currency. Totals and percentages only
