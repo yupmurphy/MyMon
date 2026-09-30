@@ -110,7 +110,7 @@
         </div>
 
         <div class="field">
-          <label for="field-currency">Amounts are written in</label>
+          <label for="field-currency">New expenses are recorded in</label>
           <select class="input" id="field-currency"></select>
         </div>
 
@@ -120,9 +120,11 @@
           <button class="btn btn--primary" type="submit" id="currency-save">Save</button>
         </div>
 
-        <p class="notice notice--problem" style="margin-top: 1rem; margin-bottom: 0">
-          This changes how amounts are <b>written</b>, not what they are worth.
-          An expense saved as 250 stays 250 — it is relabelled, never converted.
+        <p class="muted" style="margin-top: 1rem; margin-bottom: 0">
+          Every expense keeps the currency it was logged in. Changing this affects
+          what you add from now on — 800 lei spent last week stay 800 lei, because
+          that is what they were. A month holding two currencies shows two totals,
+          side by side; MyMon never converts one into the other.
         </p>
       </form>
 
@@ -162,7 +164,7 @@
 
   <footer class="site-footer">
     <div class="container">
-      <p>&copy; <span data-year>2026</span> MyMon &mdash; v1.1.3</p>
+      <p>&copy; <span data-year>2026</span> MyMon &mdash; v1.1.4</p>
       <p><a href="about.html">About the project</a></p>
     </div>
   </footer>

@@ -1,4 +1,4 @@
-# MyMon — v1.1.3
+# MyMon — v1.1.4
 
 MyMon is a simple personal expense tracker focused on clarity, not complexity.
 
@@ -46,6 +46,7 @@ js/profile.js        the username: validating, checking, claiming it
 js/install.js        the install button, which differs per browser
 supabase/schema.sql  the table and the access rules, to run once per project
 supabase/profiles.sql usernames: the table, its rules, and the availability check
+supabase/currency.sql the currency column, to run once after schema.sql
 vendor/supabase.js   the Supabase library, kept here so no CDN can take MyMon down
 manifest.webmanifest what the phone needs to install MyMon
 sw.js                service worker: installable, and it opens on a bad line

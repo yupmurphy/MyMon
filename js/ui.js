@@ -20,10 +20,10 @@ window.MyMon = window.MyMon || {};
   ];
 
   var DEFAULT_CURRENCY = 'USD';
+
+  /* Which currency *new* expenses are recorded in. Old ones keep their own,
+     which is why almost everything below takes a currency argument. */
   var code = DEFAULT_CURRENCY;
-  var withCents = null;
-  var whole = null;
-  var symbol = '$';
 
   function isKnownCurrency(value) {
     for (var i = 0; i < CURRENCIES.length; i++) {
@@ -32,56 +32,71 @@ window.MyMon = window.MyMon || {};
     return false;
   }
 
-  /* Intl throws on a currency it does not know, so only vetted codes get here. */
-  function buildFormatters() {
-    function make(decimals) {
-      return new Intl.NumberFormat('en-US', {
+  /* Anything unknown, empty or missing reads as the dollar the app shipped
+     with, so a bad stored value can never leave an amount unreadable. */
+  function cleanCurrency(value) {
+    var wanted = String(value || '').trim().toUpperCase();
+    return isKnownCurrency(wanted) ? wanted : DEFAULT_CURRENCY;
+  }
+
+  /* One formatter per currency and precision, built on first use and kept —
+     they are not cheap to make, and a mixed month asks for several. */
+  var formatters = {};
+
+  function formatter(which, decimals) {
+    var key = which + ':' + decimals;
+    if (!formatters[key]) {
+      formatters[key] = new Intl.NumberFormat('en-US', {
         style: 'currency',
-        currency: code,
+        currency: which,
         minimumFractionDigits: decimals,
         maximumFractionDigits: decimals
       });
     }
-
-    withCents = make(2);
-    whole = make(0);
-
-    /* Rather than keep a table of symbols, ask the formatter what it uses —
-       it already knows, and it stays right for currencies added later. */
-    symbol = code;
-    var parts = withCents.formatToParts(0);
-    for (var i = 0; i < parts.length; i++) {
-      if (parts[i].type === 'currency') { symbol = parts[i].value; break; }
-    }
+    return formatters[key];
   }
 
-  /* Anything unknown, empty or missing falls back to the dollar the app
-     shipped with, so a bad stored value can never leave amounts unreadable. */
+  /* Rather than keep a table of symbols, ask the formatter what it uses — it
+     already knows, and it stays right for currencies added later. */
+  function currencySymbol(which) {
+    var target = cleanCurrency(which || code);
+    var parts = formatter(target, 2).formatToParts(0);
+    for (var i = 0; i < parts.length; i++) {
+      if (parts[i].type === 'currency') return parts[i].value;
+    }
+    return target;
+  }
+
+  /* Sets the currency new expenses are recorded in. */
   function setCurrency(value) {
-    var wanted = String(value || '').trim().toUpperCase();
-    code = isKnownCurrency(wanted) ? wanted : DEFAULT_CURRENCY;
-    buildFormatters();
-
-    var slots = document.querySelectorAll('[data-currency-symbol]');
-    Array.prototype.forEach.call(slots, function (slot) {
-      slot.textContent = symbol;
-    });
-
+    code = cleanCurrency(value);
+    showSymbol(code);
     return code;
   }
 
-  /* $1,284.50 */
-  function money(value) {
-    return withCents.format(Number(value) || 0);
+  /* The sign in front of the amount field. The add dialog shows the current
+     choice; the edit dialog shows whatever that expense was logged in. */
+  function showSymbol(which) {
+    var sign = currencySymbol(which);
+    var slots = document.querySelectorAll('[data-currency-symbol]');
+    Array.prototype.forEach.call(slots, function (slot) {
+      slot.textContent = sign;
+    });
+  }
+
+  /* $1,284.50 — in `which`, or in the current choice when left out */
+  function money(value, which) {
+    return formatter(cleanCurrency(which || code), 2).format(Number(value) || 0);
   }
 
   /* $1,285 — for headline figures where cents are noise */
-  function moneyShort(value) {
+  function moneyShort(value, which) {
     var n = Number(value) || 0;
-    return Math.round(n) === n ? whole.format(n) : withCents.format(n);
+    var target = cleanCurrency(which || code);
+    return Math.round(n) === n
+      ? formatter(target, 0).format(n)
+      : formatter(target, 2).format(n);
   }
-
-  buildFormatters();
 
   function percent(value) {
     var n = Number(value) || 0;
@@ -280,8 +295,10 @@ window.MyMon = window.MyMon || {};
     moneyShort: moneyShort,
     currencies: CURRENCIES,
     currencyCode: function () { return code; },
-    currencySymbol: function () { return symbol; },
+    currencySymbol: currencySymbol,
+    cleanCurrency: cleanCurrency,
     setCurrency: setCurrency,
+    showSymbol: showSymbol,
     percent: percent,
     escapeHtml: escapeHtml,
     el: el,

@@ -36,46 +36,86 @@
 
   /* Anything the server refuses, said in one line. */
   function fail(what, error) {
+    var hint = data.setupHint(error);
+    if (hint) return ui.toast(hint, { duration: 20000 });
+
     var detail = error && error.message ? error.message : 'Please try again.';
     ui.toast(what + ' ' + detail, { duration: 8000 });
   }
 
   /* ---------- render ---------- */
 
+  /* Which currency the chart and the three stat tiles are about. A month with
+     one currency has no choice to make; a mixed one starts on whichever was
+     spent most and remembers the pick while the choice still exists. */
+  var focusCurrency = null;
+
+  function focusPart(stats) {
+    if (!stats.parts.length) return null;
+    for (var i = 0; i < stats.parts.length; i++) {
+      if (stats.parts[i].currency === focusCurrency) return stats.parts[i];
+    }
+    focusCurrency = stats.parts[0].currency;
+    return stats.parts[0];
+  }
+
   function render() {
     var stats = data.statsFor(viewMonth);
     var previous = data.statsFor(data.shiftMonth(viewMonth, -1));
+    var part = focusPart(stats);
 
     renderSummary(stats, previous);
     renderMonthNav();
-    renderStats(stats);
-    renderBreakdown(stats);
+    renderStats(stats, part);
+    renderBreakdown(stats, part);
     renderTransactions(stats);
   }
 
+  /* One line per currency, biggest spend first. Nothing is added across them:
+     800 lei and 20 dollars are two facts, not one sum. */
   function renderSummary(stats, previous) {
     dom.summaryLabel.textContent = summaryLabel(viewMonth);
-    dom.summaryValue.textContent = ui.money(stats.total);
 
-    var delta = Math.round((stats.total - previous.total) * 100) / 100;
-    var previousName = data.monthLabelRelative(previous.month).toLowerCase();
-
-    if (previous.count === 0 && stats.count === 0) {
-      dom.summaryDelta.textContent = 'Nothing logged yet.';
-      dom.summaryDelta.removeAttribute('data-dir');
-    } else if (previous.count === 0) {
-      dom.summaryDelta.textContent = 'Nothing to compare — ' + previousName + ' is empty.';
-      dom.summaryDelta.removeAttribute('data-dir');
-    } else if (delta === 0) {
-      dom.summaryDelta.textContent = 'Exactly the same as ' + previousName + '.';
-      dom.summaryDelta.removeAttribute('data-dir');
+    if (!stats.parts.length) {
+      dom.summaryValue.innerHTML = '<span class="summary__amount">' +
+        ui.escapeHtml(ui.money(0)) + '</span>';
     } else {
-      dom.summaryDelta.dataset.dir = delta > 0 ? 'up' : 'down';
-      dom.summaryDelta.innerHTML = (delta > 0 ? '&uarr; ' : '&darr; ') +
-        ui.escapeHtml(ui.money(Math.abs(delta))) +
-        (delta > 0 ? ' more' : ' less') +
-        ' <small>than ' + ui.escapeHtml(previousName) + '</small>';
+      dom.summaryValue.innerHTML = stats.parts.map(function (part, index) {
+        return '<span class="summary__amount' +
+          (index ? ' summary__amount--more' : '') + '">' +
+          ui.escapeHtml(ui.money(part.total, part.currency)) + '</span>';
+      }).join('');
     }
+
+    renderDelta(stats, previous);
+  }
+
+  /* The comparison only works like for like, so it follows the currency the
+     rest of the page is showing and compares it to the same one last month. */
+  function renderDelta(stats, previous) {
+    var previousName = data.monthLabelRelative(previous.month).toLowerCase();
+    var currency = focusCurrency;
+    var now = (stats.byCurrency[currency] || {}).total || 0;
+    var before = (previous.byCurrency[currency] || {}).total || 0;
+    var delta = Math.round((now - before) * 100) / 100;
+
+    function plain(text) {
+      dom.summaryDelta.textContent = text;
+      dom.summaryDelta.removeAttribute('data-dir');
+    }
+
+    if (previous.count === 0 && stats.count === 0) return plain('Nothing logged yet.');
+    if (!currency || !previous.byCurrency[currency]) {
+      return plain('Nothing to compare — ' + previousName + ' has nothing in ' +
+        (currency || 'this currency') + '.');
+    }
+    if (delta === 0) return plain('Exactly the same as ' + previousName + '.');
+
+    dom.summaryDelta.dataset.dir = delta > 0 ? 'up' : 'down';
+    dom.summaryDelta.innerHTML = (delta > 0 ? '&uarr; ' : '&darr; ') +
+      ui.escapeHtml(ui.money(Math.abs(delta), currency)) +
+      (delta > 0 ? ' more' : ' less') +
+      ' <small>than ' + ui.escapeHtml(previousName) + '</small>';
   }
 
   function renderMonthNav() {
@@ -85,22 +125,53 @@
     dom.monthPrev.disabled = viewMonth <= data.floorMonth();
   }
 
-  function renderStats(stats) {
+  /* The count covers the whole month; the two money tiles cannot, so they say
+     which currency they are about. */
+  function renderStats(stats, part) {
     dom.statCount.textContent = stats.count;
-    dom.statPerDay.textContent = stats.count ? ui.money(stats.perDay) : '—';
-    dom.statBiggest.textContent = stats.biggest ? ui.money(stats.biggest.amount) : '—';
-    dom.statBiggestNote.textContent = stats.biggest
-      ? data.categoryById(stats.biggest.category).label
+
+    if (!part) {
+      dom.statPerDay.textContent = '—';
+      dom.statBiggest.textContent = '—';
+      dom.statBiggestNote.textContent = 'no expenses yet';
+      return;
+    }
+
+    dom.statPerDay.textContent = ui.money(part.perDay, part.currency);
+    dom.statBiggest.textContent = part.biggest
+      ? ui.money(part.biggest.amount, part.currency)
+      : '—';
+    dom.statBiggestNote.textContent = part.biggest
+      ? data.categoryById(part.biggest.category).label
       : 'no expenses yet';
   }
 
-  function renderBreakdown(stats) {
-    var hasData = stats.byCategory.length > 0;
+  /* A row of buttons, one per currency, shown only when the month holds more
+     than one. Percentages inside a single currency mean something; across two
+     they would not, which is the whole reason this control exists. */
+  function renderCurrencyPicker(stats) {
+    var many = stats.parts.length > 1;
+    dom.currencyPicker.classList.toggle('hidden', !many);
+    if (!many) { dom.currencyPicker.innerHTML = ''; return; }
+
+    dom.currencyPicker.innerHTML = stats.parts.map(function (part) {
+      var on = part.currency === focusCurrency;
+      return '<button class="seg" type="button" data-currency="' +
+        ui.escapeHtml(part.currency) + '" aria-pressed="' + (on ? 'true' : 'false') + '">' +
+        ui.escapeHtml(part.currency) + '</button>';
+    }).join('');
+  }
+
+  function renderBreakdown(stats, part) {
+    renderCurrencyPicker(stats);
+
+    var byCategory = part ? part.byCategory : [];
+    var hasData = byCategory.length > 0;
     dom.breakdownEmpty.classList.toggle('hidden', hasData);
     dom.shareBar.classList.toggle('hidden', !hasData);
     dom.breakdown.classList.toggle('hidden', !hasData);
     dom.breakdownHint.textContent = hasData
-      ? stats.byCategory.length + (stats.byCategory.length === 1 ? ' category' : ' categories')
+      ? byCategory.length + (byCategory.length === 1 ? ' category' : ' categories')
       : '';
 
     if (!hasData) {
@@ -109,26 +180,28 @@
       return;
     }
 
+    var money = function (value) { return ui.money(value, part.currency); };
+
     /* Share bar — segments stay in the palette's validated order. */
-    dom.shareBar.innerHTML = stats.byCategory.map(function (row) {
+    dom.shareBar.innerHTML = byCategory.map(function (row) {
       return '<div class="share-bar__seg" tabindex="0" role="img"' +
         ' style="--dot: ' + row.category.color + '; flex: ' + row.percent.toFixed(4) + '"' +
-        ' data-tip="' + ui.escapeHtml(row.category.label + ' · ' + ui.money(row.total) +
+        ' data-tip="' + ui.escapeHtml(row.category.label + ' · ' + money(row.total) +
           ' · ' + ui.percent(row.percent)) + '"' +
-        ' aria-label="' + ui.escapeHtml(row.category.label + ', ' + ui.money(row.total) +
+        ' aria-label="' + ui.escapeHtml(row.category.label + ', ' + money(row.total) +
           ', ' + ui.percent(row.percent)) + '"></div>';
     }).join('');
 
     /* Written breakdown, biggest first. Every bar carries its own name, amount
        and share, so nothing here depends on telling two colours apart. */
-    var rows = stats.byCategory.slice().sort(function (a, b) { return b.total - a.total; });
+    var rows = byCategory.slice().sort(function (a, b) { return b.total - a.total; });
 
     dom.breakdown.innerHTML = rows.map(function (row) {
       return '<li class="breakdown__row" style="--dot: ' + row.category.color + '">' +
         '<div class="breakdown__head">' +
           '<span class="breakdown__dot" aria-hidden="true"></span>' +
           '<span class="breakdown__name">' + ui.escapeHtml(row.category.label) + '</span>' +
-          '<span class="breakdown__amount">' + ui.escapeHtml(ui.money(row.total)) + '</span>' +
+          '<span class="breakdown__amount">' + ui.escapeHtml(money(row.total)) + '</span>' +
           '<span class="breakdown__pct">' + ui.escapeHtml(ui.percent(row.percent)) + '</span>' +
         '</div>' +
         '<div class="breakdown__track">' +
@@ -176,6 +249,7 @@
 
   function renderTx(tx) {
     var category = data.categoryById(tx.category);
+    var written = ui.money(tx.amount, tx.currency);
     return '<li class="tx" style="--dot: ' + category.color + '">' +
       '<span class="tx__icon" aria-hidden="true">' + category.icon + '</span>' +
       '<span class="tx__body">' +
@@ -187,17 +261,17 @@
               ui.escapeHtml(tx.comment) + '</span>'
           : '') +
       '</span>' +
-      '<span class="tx__amount">' + ui.escapeHtml(ui.money(tx.amount)) + '</span>' +
+      '<span class="tx__amount">' + ui.escapeHtml(written) + '</span>' +
       '<span class="tx__tools">' +
         '<button class="tx__tool" type="button" data-edit="' + ui.escapeHtml(tx.id) + '"' +
-          ' aria-label="Edit ' + ui.escapeHtml(category.label + ' ' + ui.money(tx.amount)) + '">' +
+          ' aria-label="Edit ' + ui.escapeHtml(category.label + ' ' + written) + '">' +
           '<svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"' +
           ' stroke-linecap="round" stroke-linejoin="round" aria-hidden="true">' +
           '<path d="M4 20h4L19 9a2.8 2.8 0 0 0-4-4L4 16v4z"/><path d="M14 6l4 4"/></svg>' +
         '</button>' +
         '<button class="tx__tool tx__tool--danger" type="button" data-remove="' +
           ui.escapeHtml(tx.id) + '"' +
-          ' aria-label="Delete ' + ui.escapeHtml(category.label + ' ' + ui.money(tx.amount)) + '">' +
+          ' aria-label="Delete ' + ui.escapeHtml(category.label + ' ' + written) + '">' +
           '<svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.2"' +
           ' stroke-linecap="round" aria-hidden="true"><path d="M6 6l12 12M18 6L6 18"/></svg>' +
         '</button>' +
@@ -260,8 +334,12 @@
 
     dom.title.textContent = editing ? 'Edit expense' : 'Add expense';
     dom.subtitle.textContent = editing
-      ? 'Change anything here and the same expense is updated.'
+      ? 'The same expense is updated, and it keeps the currency it was logged in.'
       : 'This month or last month, nothing in the future.';
+
+    /* An expense is logged in one currency and stays there, so the sign in
+       front of the field is the one this particular expense uses. */
+    ui.showSymbol(editing ? tx.currency : ui.currencyCode());
 
     dom.fieldDate.max = data.today();
 
@@ -346,9 +424,10 @@
       render();
 
       var label = data.categoryById(result.tx.category).label;
+      var written = ui.money(result.tx.amount, result.tx.currency);
       ui.toast(changing
-        ? 'Updated to ' + ui.money(result.tx.amount) + ' in ' + label + '.'
-        : 'Added ' + ui.money(result.tx.amount) + ' to ' + label + '.');
+        ? 'Updated to ' + written + ' in ' + label + '.'
+        : 'Added ' + written + ' to ' + label + '.');
     }).catch(function (error) {
       setSaving(false);
       fail(changing ? 'Could not save that change.' : 'Could not save that expense.', error);
@@ -437,6 +516,14 @@
       if (edit) openEditDialog(edit.dataset.edit);
     });
 
+    /* Switching which currency the chart and the tiles are about. */
+    dom.currencyPicker.addEventListener('click', function (event) {
+      var button = event.target.closest('[data-currency]');
+      if (!button) return;
+      focusCurrency = button.dataset.currency;
+      render();
+    });
+
     dom.seedBtn.addEventListener('click', function () {
       dom.seedBtn.disabled = true;
       data.seedSample().then(function () {
@@ -485,6 +572,7 @@
       txEmpty: byId('tx-empty'),
       txHint: byId('tx-hint'),
       seedBtn: byId('seed-sample'),
+      currencyPicker: byId('breakdown-currency'),
       dialog: byId('add-dialog'),
       title: byId('add-title'),
       subtitle: byId('add-subtitle'),

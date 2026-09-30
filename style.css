@@ -167,6 +167,38 @@ html[data-session="out"] [data-when="signed-in"] { display: none !important; }
   white-space: nowrap;
 }
 
+/* A small row of mutually exclusive buttons — used above the chart to say
+   which currency it is about, in a month that holds several. */
+.seg-row {
+  display: flex;
+  flex-wrap: wrap;
+  gap: .3rem;
+  margin: 0 0 1.25rem;
+}
+
+.seg {
+  border: 1px solid var(--line);
+  background: var(--surface);
+  color: var(--ink-500);
+  font: inherit;
+  font-size: .8rem;
+  font-weight: 800;
+  letter-spacing: .02em;
+  padding: .3rem .7rem;
+  border-radius: var(--r-pill);
+  cursor: pointer;
+  transition: background-color .15s ease, color .15s ease, border-color .15s ease;
+}
+.seg:hover { background: var(--surface-sunken); color: var(--ink-700); }
+
+/* aria-pressed is what a screen reader reads, so the styling hangs off the
+   same attribute rather than a class that could drift away from it. */
+.seg[aria-pressed="true"] {
+  background: var(--brand-600);
+  border-color: var(--brand-600);
+  color: #fff;
+}
+
 /* ---------- 3. Header & footer ---------- */
 .site-header {
   position: sticky;
@@ -857,6 +889,16 @@ a.user-chip:hover { border-color: var(--brand-300); background: var(--brand-050)
   color: var(--ink-900);
   font-variant-numeric: tabular-nums;
   margin: .3rem 0 .6rem;
+}
+
+/* A month can hold more than one currency, and they are never added together.
+   Each gets its own line; the largest leads, the rest follow a size down —
+   smaller because they are smaller, not because they matter less. */
+.summary__amount { display: block; }
+.summary__amount--more {
+  font-size: .45em;
+  color: var(--ink-500);
+  margin-top: .25rem;
 }
 
 .summary__delta {

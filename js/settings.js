@@ -115,7 +115,7 @@
       minimumFractionDigits: 2, maximumFractionDigits: 2
     }).format(1284.5);
 
-    dom.currencyPreview.textContent = 'Amounts will look like ' + sample + '.';
+    dom.currencyPreview.textContent = 'New expenses will look like ' + sample + '.';
   }
 
   function saveCurrency(event) {
@@ -134,7 +134,7 @@
          the amounts it had written in the old one. */
       renderAccount();
       renderCurrencyPreview();
-      ui.toast('Amounts are now written in ' + ui.currencyCode() + '.');
+      ui.toast('New expenses will be recorded in ' + ui.currencyCode() + '.');
     }).catch(function (error) {
       dom.currencySave.disabled = false;
       dom.currencySave.textContent = 'Save';
@@ -313,8 +313,8 @@
         document.body.classList.remove('booting');
         /* The name form still works even when the expenses fail to load. */
         if (user) renderAccount();
-        ui.toast('Could not read your expenses. ' +
-          (error && error.message ? error.message : ''), { duration: 8000 });
+        ui.toast(data.setupHint(error) || ('Could not read your expenses. ' +
+          (error && error.message ? error.message : '')), { duration: 12000 });
       });
   }
 

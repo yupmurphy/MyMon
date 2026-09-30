@@ -111,6 +111,10 @@ window.MyMon = window.MyMon || {};
   var cache = [];       /* every expense of the signed-in user */
   var loaded = false;
 
+  /* Every read asks for the same columns; naming them once keeps the list and
+     fromRow() from drifting apart. */
+  var SELECT = 'id, amount, category, spent_on, currency, comment, created_at';
+
   function table() {
     var client = NS.session && NS.session.client;
     if (!client) throw new Error('MyMon is not connected to the database.');
@@ -124,6 +128,7 @@ window.MyMon = window.MyMon || {};
       amount: Number(row.amount),
       category: row.category,
       date: row.spent_on,
+      currency: (NS.ui ? NS.ui.cleanCurrency(row.currency) : (row.currency || 'USD')),
       comment: row.comment || '',
       createdAt: row.created_at
     };
@@ -136,6 +141,7 @@ window.MyMon = window.MyMon || {};
       amount: tx.amount,
       category: tx.category,
       spent_on: tx.date,
+      currency: (NS.ui ? NS.ui.cleanCurrency(tx.currency) : (tx.currency || 'USD')),
       comment: tx.comment || ''
     };
   }
@@ -158,7 +164,7 @@ window.MyMon = window.MyMon || {};
   /* Fetch everything once. Called by the dashboard before the first render. */
   function load() {
     return table()
-      .select('id, amount, category, spent_on, comment, created_at')
+      .select(SELECT)
       .order('spent_on', { ascending: false })
       .then(function (result) {
         if (result.error) throw result.error;
@@ -258,9 +264,13 @@ window.MyMon = window.MyMon || {};
     var result = validate(input);
     if (!result.ok) return Promise.resolve(result);
 
+    /* Stamped now and never touched again: this is the currency the money was
+       actually spent in. */
+    result.value.currency = NS.ui ? NS.ui.currencyCode() : 'USD';
+
     return table()
       .insert(toRow(result.value))
-      .select('id, amount, category, spent_on, comment, created_at')
+      .select(SELECT)
       .single()
       .then(function (response) {
         if (response.error) throw response.error;
@@ -270,6 +280,19 @@ window.MyMon = window.MyMon || {};
         result.tx = tx;
         return result;
       });
+  }
+
+  /* A database that has not been brought up to date fails with a message no
+     one can act on ("column transactions.currency does not exist"). This turns
+     the one case we cause ourselves into an instruction. */
+  function setupHint(error) {
+    if (!error) return null;
+    var text = String(error.message || '') + ' ' + String(error.code || '');
+    if (/currency/i.test(text) && /(does not exist|42703|schema cache)/i.test(text)) {
+      return 'This project needs one more step: run supabase/currency.sql in the ' +
+        'Supabase SQL Editor, then reload.';
+    }
+    return null;
   }
 
   function find(id) {
@@ -289,10 +312,14 @@ window.MyMon = window.MyMon || {};
     var result = validate(input, current.date);
     if (!result.ok) return Promise.resolve(result);
 
+    /* An edit corrects what was spent, not what it was spent in — changing
+       the setting later must not turn an old 800 lei into 800 dollars. */
+    result.value.currency = current.currency;
+
     return table()
       .update(toRow(result.value))
       .eq('id', id)
-      .select('id, amount, category, spent_on, comment, created_at')
+      .select(SELECT)
       .single()
       .then(function (response) {
         if (response.error) throw response.error;
@@ -333,7 +360,7 @@ window.MyMon = window.MyMon || {};
 
     return table()
       .insert(toRow(tx))
-      .select('id, amount, category, spent_on, comment, created_at')
+      .select(SELECT)
       .single()
       .then(function (response) {
         if (response.error) throw response.error;
@@ -348,7 +375,7 @@ window.MyMon = window.MyMon || {};
     if (!rows.length) return Promise.resolve([]);
     return table()
       .insert(rows)
-      .select('id, amount, category, spent_on, comment, created_at')
+      .select(SELECT)
       .then(function (response) {
         if (response.error) throw response.error;
         var added = (response.data || []).map(fromRow);
@@ -361,8 +388,12 @@ window.MyMon = window.MyMon || {};
   /* ---------- statistics --------------------------------------------------
      Everything the dashboard needs for one month, in one pass over the cache. */
 
-  function statsFor(monthKey) {
-    var list = forMonth(monthKey);
+  function round2(n) { return Math.round(n * 100) / 100; }
+
+  /* Everything a month can say about one currency. Totals and percentages only
+     mean something inside a single currency — 800 lei plus 20 dollars is not
+     820 of anything — so the sums never cross from one to another. */
+  function statsForCurrency(list, currency) {
     var totals = {};
     var total = 0;
 
@@ -371,14 +402,14 @@ window.MyMon = window.MyMon || {};
       total += tx.amount;
     });
 
-    total = Math.round(total * 100) / 100;
+    total = round2(total);
 
     /* Kept in CATEGORIES order so the share bar keeps its validated colour
        sequence; the dashboard sorts a copy by size for the written breakdown. */
     var byCategory = CATEGORIES
       .filter(function (cat) { return totals[cat.id] > 0; })
       .map(function (cat) {
-        var sum = Math.round(totals[cat.id] * 100) / 100;
+        var sum = round2(totals[cat.id]);
         return {
           category: cat,
           total: sum,
@@ -391,7 +422,7 @@ window.MyMon = window.MyMon || {};
     var dayCount = Object.keys(days).length;
 
     return {
-      month: monthKey,
+      currency: currency,
       transactions: list,
       count: list.length,
       total: total,
@@ -399,7 +430,41 @@ window.MyMon = window.MyMon || {};
       biggest: list.reduce(function (best, tx) {
         return !best || tx.amount > best.amount ? tx : best;
       }, null),
-      perDay: dayCount ? Math.round((total / dayCount) * 100) / 100 : 0
+      perDay: dayCount ? round2(total / dayCount) : 0
+    };
+  }
+
+  /* A month, split by currency. `parts` is ordered biggest spend first, so the
+     dashboard can lead with the currency that dominated the month. */
+  function statsFor(monthKey) {
+    var list = forMonth(monthKey);
+
+    var buckets = {};
+    var order = [];
+    list.forEach(function (tx) {
+      if (!buckets[tx.currency]) { buckets[tx.currency] = []; order.push(tx.currency); }
+      buckets[tx.currency].push(tx);
+    });
+
+    var parts = order.map(function (currency) {
+      return statsForCurrency(buckets[currency], currency);
+    });
+
+    parts.sort(function (a, b) { return b.total - a.total; });
+
+    var byCurrency = {};
+    parts.forEach(function (part) { byCurrency[part.currency] = part; });
+
+    return {
+      month: monthKey,
+      transactions: list,
+      count: list.length,
+      currencies: parts.map(function (part) { return part.currency; }),
+      parts: parts,
+      byCurrency: byCurrency,
+
+      /* The one currency a month is in, or null when it holds more than one. */
+      only: parts.length === 1 ? parts[0].currency : null
     };
   }
 
@@ -442,6 +507,9 @@ window.MyMon = window.MyMon || {};
             amount: Number(tx.amount),
             category: tx.category,
             date: tx.date,
+            /* The old browser-only version had no currencies; these amounts are
+               whatever the person thinks in today. */
+            currency: NS.ui ? NS.ui.currencyCode() : 'USD',
             comment: tx.comment || ''
           };
         })
@@ -485,7 +553,10 @@ window.MyMon = window.MyMon || {};
       date.setDate(date.getDate() - pick[2]);
       var key = toKey(date);
       if (key < floor) return;
-      rows.push({ amount: pick[1], category: pick[0], spent_on: key, comment: pick[3] });
+      rows.push({
+        amount: pick[1], category: pick[0], spent_on: key, comment: pick[3],
+        currency: NS.ui ? NS.ui.currencyCode() : 'USD'
+      });
     });
 
     return insertMany(rows);
@@ -513,6 +584,7 @@ window.MyMon = window.MyMon || {};
     forMonth: forMonth,
     validate: validate,
     find: find,
+    setupHint: setupHint,
     add: add,
     update: update,
     remove: remove,
