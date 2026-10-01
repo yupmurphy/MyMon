@@ -755,18 +755,6 @@
       });
     });
 
-    var signOut = byId('sign-out');
-    if (signOut) {
-      signOut.addEventListener('click', function () {
-        signOut.disabled = true;
-        session.signOut().then(function () {
-          /* The landing page says so out loud, otherwise signing out feels
-             like nothing happened. */
-          window.location.href = 'index.html?signedout=1';
-        });
-      });
-    }
-
     window.addEventListener('scroll', ui.hideTip, { passive: true });
   }
 

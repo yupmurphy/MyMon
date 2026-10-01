@@ -199,7 +199,9 @@ window.MyMon = window.MyMon || {};
     options = options || {};
     var page = options.page;
 
-    var links = document.querySelectorAll('.site-nav a[data-page]');
+    /* The footer carries Home and About now, so it marks the current page
+       the same way the header does. */
+    var links = document.querySelectorAll('.site-nav a[data-page], .site-footer a[data-page]');
     Array.prototype.forEach.call(links, function (link) {
       if (link.dataset.page === page) link.setAttribute('aria-current', 'page');
       else link.removeAttribute('aria-current');
@@ -214,32 +216,6 @@ window.MyMon = window.MyMon || {};
       Array.prototype.forEach.call(slots, function (slot) {
         slot.textContent = user.name;
       });
-    }
-
-    var chip = document.querySelector('[data-user-chip]');
-    if (chip) {
-      if (user) {
-        chip.classList.remove('hidden');
-        var avatar = chip.querySelector('.avatar');
-        if (avatar) {
-          /* Google usually gives us a picture; initials are the fallback. */
-          if (user.avatar) {
-            avatar.innerHTML = '';
-            var img = new Image();
-            img.src = user.avatar;
-            img.alt = '';
-            img.referrerPolicy = 'no-referrer';
-            img.onerror = function () {
-              avatar.textContent = NS.session.initials(user.name);
-            };
-            avatar.appendChild(img);
-          } else {
-            avatar.textContent = NS.session.initials(user.name);
-          }
-        }
-      } else {
-        chip.classList.add('hidden');
-      }
     }
 
     var signedIn = document.querySelectorAll('[data-when="signed-in"]');

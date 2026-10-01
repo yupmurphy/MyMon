@@ -51,24 +51,21 @@
   <header class="site-header">
     <div class="container">
       <a class="brand" href="index.html?stay=1" aria-label="MyMon home">
-        <img src="MyM.png" class="logo" alt="MyMon" />
+        <span class="logo">MyMon</span>
       </a>
+
+      <!-- The header carries where you can go, and nothing else. About moved
+           to the footer — it is read once, not returned to — and the chip and
+           the sign-out button went with it, to Settings. Four links, a chip and
+           a button came to 463px of header on a 375px phone, which is why the
+           page could be dragged sideways. -->
       <nav class="site-nav" aria-label="Main">
-        <a href="index.html?stay=1" data-page="home">Home</a>
-        <a href="about.html" data-page="about">About</a>
         <a href="dashboard.html" data-page="dashboard" data-when="signed-in">Dashboard</a>
         <a href="settings.html" data-page="settings" data-when="signed-in">Settings</a>
-      </nav>
-      <div class="header-actions">
-        <a class="user-chip" href="settings.html" data-user-chip data-when="signed-in">
-          <span class="avatar" aria-hidden="true"></span>
-          <span data-user-name></span>
-        </a>
-        <a class="btn btn--primary" href="dashboard.html" data-when="signed-in">Dashboard</a>
         <button class="btn btn--primary" type="button" data-signin data-when="signed-out">
           Open MyMon
         </button>
-      </div>
+      </nav>
     </div>
   </header>
 
@@ -271,11 +268,14 @@
   <footer class="site-footer">
     <div class="container">
       <div class="site-footer__brand">
-        <img src="MyM.png" class="logo" alt="" />
+        <span class="logo logo--quiet" aria-hidden="true">MyMon</span>
         <p>Your money habits. Under &ldquo;parental&rdquo; supervision. <b>Again.</b></p>
       </div>
-      <p class="site-footer__meta">&copy; <span data-year>2026</span> MyMon &mdash; v1.1.15</p>
-      <p><a href="about.html">About the project</a></p>
+      <nav class="site-footer__links" aria-label="More">
+        <a href="index.html?stay=1" data-page="home">Home</a>
+        <a href="about.html" data-page="about">About</a>
+      </nav>
+      <p class="site-footer__meta">&copy; <span data-year>2026</span> MyMon &mdash; v1.1.16</p>
     </div>
   </footer>
 

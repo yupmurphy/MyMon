@@ -233,7 +233,39 @@ html[data-session="out"] [data-when="signed-in"] { display: none !important; }
 }
 
 .brand { display: inline-flex; align-items: center; }
-.logo { width: auto; height: 38px; display: block; }
+/* The wordmark is type, not a picture. It is set in the same Nunito as the
+   rest of the site, so it is sharp at any size and on any screen, it costs no
+   bytes, and it cannot be squeezed out of shape — the PNG it replaces was
+   200KB to be shown at 38px, and on a crowded phone header the flex row
+   squashed it to nothing. flex: none is what keeps that from happening. */
+.logo {
+  display: inline-flex;
+  align-items: center;
+  flex: none;
+  height: 36px;
+  padding: 0 .95rem;
+  border-radius: var(--r-pill);
+  background: var(--brand-600);
+  color: #fff;
+  font-weight: 900;
+  font-size: 1.05rem;
+  letter-spacing: -.005em;
+  white-space: nowrap;
+  transition: background-color .15s ease;
+}
+
+.brand { text-decoration: none; }
+.brand:hover .logo { background: var(--brand-700); }
+
+/* The footer says the name once more without competing with it. */
+.logo--quiet {
+  height: 30px;
+  padding: 0 .75rem;
+  font-size: .9rem;
+  background: none;
+  color: var(--brand-700);
+  box-shadow: inset 0 0 0 2px var(--brand-300);
+}
 
 .site-nav { display: flex; align-items: center; gap: .35rem; }
 
@@ -250,40 +282,6 @@ html[data-session="out"] [data-when="signed-in"] { display: none !important; }
 
 .site-nav a:hover { background: var(--brand-100); color: var(--brand-700); }
 .site-nav a[aria-current="page"] { background: var(--brand-100); color: var(--brand-700); }
-
-.header-actions { display: flex; align-items: center; gap: .6rem; }
-
-.user-chip {
-  display: inline-flex;
-  align-items: center;
-  gap: .55rem;
-  padding: .3rem .8rem .3rem .3rem;
-  border-radius: var(--r-pill);
-  background: var(--surface-sunken);
-  border: 1px solid var(--line);
-  font-weight: 800;
-  font-size: .9rem;
-  color: var(--ink-700);
-  max-width: 190px;
-}
-
-.user-chip span {
-  overflow: hidden;
-  text-overflow: ellipsis;
-  white-space: nowrap;
-}
-
-.avatar {
-  width: 30px; height: 30px;
-  flex: none;
-  border-radius: 50%;
-  display: grid;
-  place-items: center;
-  background: linear-gradient(140deg, var(--brand-500), var(--brand-700));
-  color: #fff;
-  font-weight: 800;
-  font-size: .85rem;
-}
 
 .site-footer {
   margin-top: 4rem;
@@ -312,11 +310,16 @@ html[data-session="out"] [data-when="signed-in"] { display: none !important; }
   margin-right: auto;
 }
 
-.site-footer__brand .logo { height: 26px; opacity: .85; }
+
 .site-footer__brand p { margin: 0; color: var(--ink-400); }
 .site-footer__brand b { color: var(--brand-600); font-weight: 900; letter-spacing: .06em; }
 
 .site-footer__meta { margin: 0; font-variant-numeric: tabular-nums; }
+
+/* Home and About live here now rather than in the header. */
+.site-footer__links { display: flex; align-items: center; gap: 1.1rem; }
+.site-footer__links a { font-weight: 700; }
+.site-footer__links a[aria-current="page"] { color: var(--brand-600); }
 
 /* ---------- 4. Buttons, forms, chips ---------- */
 .btn {
@@ -917,8 +920,6 @@ html[data-session="out"] [data-when="signed-in"] { display: none !important; }
 }
 
 /* The chip turns into the way into this page. */
-a.user-chip { text-decoration: none; transition: border-color .15s ease, background-color .15s ease; }
-a.user-chip:hover { border-color: var(--brand-300); background: var(--brand-050); }
 
 @media (max-width: 680px) {
   .settings-pair { grid-template-columns: 1fr; gap: 0; }
@@ -1623,13 +1624,10 @@ dialog.modal[open] { animation: pop .18s cubic-bezier(.22, .61, .36, 1); }
 @media (max-width: 680px) {
   :root { --gutter: 16px; }
   .site-header .container { min-height: 58px; gap: .4rem; }
-  .logo { height: 28px; }
+  .logo { height: 32px; padding: 0 .75rem; font-size: .95rem; }
   .site-nav { gap: .1rem; }
   .site-nav a { padding: .35rem .5rem; font-size: .85rem; }
-  .header-actions { gap: .3rem; }
   .btn--quiet { padding: .35rem .5rem; font-size: .82rem; }
-  .user-chip { padding: .25rem; border: 0; background: none; }
-  .user-chip > span:not(.avatar) { display: none; }
   .card { padding: 1.25rem; }
   .stat-row { grid-template-columns: 1fr 1fr; }
   .stat-row .stat:last-child { grid-column: 1 / -1; }
@@ -1735,13 +1733,6 @@ body.booting .booting-veil {
 }
 
 /* Google hands us a profile picture; it replaces the initials. */
-.avatar { overflow: hidden; }
-.avatar img {
-  display: block;
-  width: 100%; height: 100%;
-  border-radius: 50%;
-  object-fit: cover;
-}
 
 @media (prefers-reduced-motion: reduce) {
   *, *::before, *::after {
