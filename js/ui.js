@@ -195,6 +195,92 @@ window.MyMon = window.MyMon || {};
   /* ---------- header ---------- */
 
   /* Marks the current page in the nav and fills in the signed-in user's chip. */
+  /* ---------- light and dark ----------------------------------------------
+
+     Three states, not two. Until somebody presses the button there is no
+     choice stored and the page simply follows whatever the phone or the
+     laptop is set to — the stylesheet does that part on its own, with a media
+     query. Pressing the button writes a choice down, and from then on it is
+     that choice, on this device, until it is pressed again.
+
+     A matching line sits inline in every page's <head>. It has to: this file
+     loads at the end of the body, and a page that reached the screen before
+     the choice was read would show a white flash on its way to dark. */
+
+  var THEME_KEY = 'mymon.theme';
+
+  function systemWantsDark() {
+    return !!(window.matchMedia && window.matchMedia('(prefers-color-scheme: dark)').matches);
+  }
+
+  /* localStorage throws rather than returning null in a private window with
+     site data blocked, so every touch of it is wrapped. */
+  function storedTheme() {
+    try {
+      var saved = window.localStorage.getItem(THEME_KEY);
+      return saved === 'dark' || saved === 'light' ? saved : null;
+    } catch (err) {
+      return null;
+    }
+  }
+
+  function currentTheme() {
+    return storedTheme() || (systemWantsDark() ? 'dark' : 'light');
+  }
+
+  function setTheme(name) {
+    document.documentElement.setAttribute('data-theme', name);
+    try {
+      window.localStorage.setItem(THEME_KEY, name);
+    } catch (err) { /* nothing to remember it with; the page still changes */ }
+    paintThemeButtons(name);
+  }
+
+  function toggleTheme() {
+    setTheme(currentTheme() === 'dark' ? 'light' : 'dark');
+  }
+
+  /* The button shows where it will take you, not where you are: a moon to go
+     dark, a sun to come back. The label says it in words, because an icon on
+     its own is a guess. */
+  function paintThemeButtons(theme) {
+    var dark = theme === 'dark';
+    var said = dark ? 'Switch to the light theme' : 'Switch to the dark theme';
+
+    var buttons = document.querySelectorAll('[data-theme-toggle]');
+    Array.prototype.forEach.call(buttons, function (button) {
+      button.dataset.themeState = dark ? 'dark' : 'light';
+      button.setAttribute('aria-label', said);
+      button.setAttribute('title', said);
+    });
+
+    /* What colours the browser's own bar around the page on a phone. A green
+       strip over a dark page looks like a bug. */
+    var meta = document.querySelector('meta[name="theme-color"]');
+    if (meta) meta.setAttribute('content', dark ? '#101613' : '#3d8a45');
+  }
+
+  function startTheme() {
+    paintThemeButtons(currentTheme());
+
+    var buttons = document.querySelectorAll('[data-theme-toggle]');
+    Array.prototype.forEach.call(buttons, function (button) {
+      button.addEventListener('click', toggleTheme);
+    });
+
+    /* Somebody who has never pressed the button is following the system, so
+       the page keeps up when the system changes under it. Once they have
+       chosen, their choice stands and this does nothing. */
+    if (window.matchMedia) {
+      var dark = window.matchMedia('(prefers-color-scheme: dark)');
+      var follow = function () {
+        if (!storedTheme()) paintThemeButtons(systemWantsDark() ? 'dark' : 'light');
+      };
+      if (dark.addEventListener) dark.addEventListener('change', follow);
+      else if (dark.addListener) dark.addListener(follow);
+    }
+  }
+
   function mountHeader(options) {
     options = options || {};
     var page = options.page;
@@ -252,6 +338,12 @@ window.MyMon = window.MyMon || {};
 
   registerWorker();
 
+  /* The theme does not wait for the account: it is a property of this device,
+     the button is in the header of every page including the ones you can read
+     signed out, and this file is loaded at the end of the body, so the markup
+     it wires up is already there. */
+  startTheme();
+
   /* Every page loads this file after session.js and renders only once the
      session has settled, so the chosen currency is in place before the first
      amount is written. A sign-in or a change in Settings re-runs it. */
@@ -275,6 +367,9 @@ window.MyMon = window.MyMon || {};
     bindTips: bindTips,
     hideTip: hideTip,
     mountHeader: mountHeader,
+    currentTheme: currentTheme,
+    setTheme: setTheme,
+    toggleTheme: toggleTheme,
     year: year
   };
 })(window.MyMon);

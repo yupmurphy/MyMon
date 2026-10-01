@@ -53,7 +53,7 @@ window.MyMon = window.MyMon || {};
       c.from('group_comments')
         .select('id, group_expense_id, author_id, body, created_at')
         .order('created_at', { ascending: true }),
-      c.from('profiles').select('id, username')
+      c.from('profiles').select('id, username, first_name, last_name')
     ]);
   }
 
@@ -84,7 +84,13 @@ window.MyMon = window.MyMon || {};
       });
 
       names = {};
-      (responses[4].data || []).forEach(function (row) { names[row.id] = row.username; });
+      (responses[4].data || []).forEach(function (row) {
+        names[row.id] = {
+          username: row.username,
+          firstName: row.first_name || '',
+          lastName: row.last_name || ''
+        };
+      });
 
       sortEntries();
       loaded = true;
@@ -122,9 +128,38 @@ window.MyMon = window.MyMon || {};
 
   /* ---------- questions about what is in memory --------------------------- */
 
+  /* The short label a list uses: "you" for yourself, the username otherwise. */
   function usernameOf(userId) {
     if (userId === me()) return 'you';
-    return names[userId] || 'someone';
+    var row = names[userId];
+    return (row && row.username) || 'someone';
+  }
+
+  /* Everything there is to say about a person, for the little card the group
+     prints beside what they wrote.
+
+     A name can be missing — it is optional, and most people never set one —
+     so the username is what the card falls back to, and it is the only part
+     guaranteed to exist. The initial follows whichever of the two is being
+     shown, so the letter on the badge always matches the word beside it. */
+  function personOf(userId) {
+    var row = names[userId] || {};
+    var username = row.username || '';
+    var fullName = [row.firstName || '', row.lastName || ''].join(' ').trim();
+
+    return {
+      id: userId,
+      isMe: userId === me(),
+      username: username,
+      firstName: row.firstName || '',
+      lastName: row.lastName || '',
+      fullName: fullName,
+      /* What to print large. */
+      title: fullName || (username ? '@' + username : 'Someone'),
+      /* What to print small underneath, left out when it would repeat. */
+      handle: username ? '@' + username : '',
+      initial: (fullName || username || '?').trim().charAt(0).toUpperCase()
+    };
   }
 
   function membersOf(groupId) {
@@ -227,10 +262,13 @@ window.MyMon = window.MyMon || {};
     });
 
     return order.map(function (userId) {
+      var person = personOf(userId);
       return {
         userId: userId,
-        username: usernameOf(userId),
-        isMe: userId === me(),
+        /* Everybody by their name, you by "you" — this list is a comparison
+           against the others, and yours is the row you look for first. */
+        username: person.isMe ? 'you' : person.title,
+        isMe: person.isMe,
         total: Math.round(sums[userId] * 100) / 100
       };
     }).sort(function (a, b) { return b.total - a.total; });
@@ -319,7 +357,9 @@ window.MyMon = window.MyMon || {};
   };
 
   function invite(groupId, username) {
-    var candidate = String(username == null ? '' : username).trim();
+    /* The box already shows an @ in front, so most people will not type one.
+       The ones who do are not wrong, and should not be told off for it. */
+    var candidate = String(username == null ? '' : username).trim().replace(/^@+/, '').trim();
     if (!candidate) return Promise.resolve({ ok: false, error: 'Type their username.' });
 
     return client().rpc('invite_to_group', { gid: groupId, candidate: candidate })
@@ -501,6 +541,7 @@ window.MyMon = window.MyMon || {};
     invitations: invitations,
     find: find,
     usernameOf: usernameOf,
+    personOf: personOf,
     membersOf: membersOf,
     entriesOf: entriesOf,
     findEntry: findEntry,

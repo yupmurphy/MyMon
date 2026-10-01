@@ -19,14 +19,19 @@ window.MyMon = window.MyMon || {};
      sit next to each other safely in the share bar. Do not reorder casually.
      Changing the ids here means changing the check constraint in
      supabase/schema.sql too. */
+  /* The colours name a token rather than carrying a hex, because there are two
+     palettes now: the light one these were validated in, and a separate set
+     chosen and validated for the dark surface. A hex here would be painted
+     straight into the page's style attribute and would win against both. The
+     actual values, and the validator runs behind them, live in style.css. */
   var CATEGORIES = [
-    { id: 'food',          label: 'Food',          icon: '\u{1F34E}', color: '#2a78d6' },
-    { id: 'bills',         label: 'Bills',         icon: '\u{1F9FE}', color: '#eb6834' },
-    { id: 'transport',     label: 'Transport',     icon: '\u{1F68C}', color: '#1baf7a' },
-    { id: 'entertainment', label: 'Entertainment', icon: '\u{1F3AC}', color: '#eda100' },
-    { id: 'hobby',         label: 'Hobby',         icon: '\u{1F3A8}', color: '#e87ba4' },
-    { id: 'other',         label: 'Other',         icon: '\u{1F4E6}', color: '#4a3aa7' },
-    { id: 'shopping',      label: 'Shopping',      icon: '\u{1F6CD}️', color: '#e34948' }
+    { id: 'food',          label: 'Food',          icon: '\u{1F34E}', color: 'var(--cat-food)' },
+    { id: 'bills',         label: 'Bills',         icon: '\u{1F9FE}', color: 'var(--cat-bills)' },
+    { id: 'transport',     label: 'Transport',     icon: '\u{1F68C}', color: 'var(--cat-transport)' },
+    { id: 'entertainment', label: 'Entertainment', icon: '\u{1F3AC}', color: 'var(--cat-entertainment)' },
+    { id: 'hobby',         label: 'Hobby',         icon: '\u{1F3A8}', color: 'var(--cat-hobby)' },
+    { id: 'other',         label: 'Other',         icon: '\u{1F4E6}', color: 'var(--cat-other)' },
+    { id: 'shopping',      label: 'Shopping',      icon: '\u{1F6CD}️', color: 'var(--cat-shopping)' }
   ];
 
   var MIN_AMOUNT = 0.01;

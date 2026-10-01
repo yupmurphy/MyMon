@@ -45,12 +45,43 @@ window.MyMon = window.MyMon || {};
   /* Your own row, or null when you have not picked a name yet. */
   function load() {
     return table()
-      .select('username, created_at')
+      .select('username, first_name, last_name, created_at')
       .maybeSingle()
       .then(function (response) {
         if (response.error) throw response.error;
         return response.data || null;
       });
+  }
+
+  /* The display name, copied onto the profile so the people in your groups can
+     read it — the account's own copy is readable by nobody but you, which is
+     fine until a group wants to print "Ana Popescu" instead of "@ana".
+
+     An update rather than an upsert: with no username there is no profile row,
+     and no row is the right answer, because without a username you cannot be
+     invited into a group and nobody has anything to read. Picking a username
+     later carries the name along with it (see save below). */
+  function saveName(firstName, lastName) {
+    var user = NS.session.get();
+    if (!user) return Promise.resolve(null);
+
+    return table()
+      .update({
+        first_name: trimmed(firstName),
+        last_name: trimmed(lastName)
+      })
+      .eq('id', user.id)
+      .then(function (response) {
+        if (response.error) throw response.error;
+        return true;
+      });
+  }
+
+  /* Empty means empty, not an empty string: the column is allowed to be null
+     and "no name" should read the same way everywhere. */
+  function trimmed(value) {
+    var text = String(value == null ? '' : value).trim().slice(0, 40);
+    return text || null;
   }
 
   /* Asks the database whether a name is free. It answers yes or no and gives
@@ -77,8 +108,17 @@ window.MyMon = window.MyMon || {};
     var user = NS.session.get();
     if (!user) return Promise.reject(new Error('You are not signed in.'));
 
+    /* The name goes in with it. Claiming a username is what creates the row
+       for somebody who typed their name first, and leaving it out here would
+       mean their groups showed "@ana" until they went back and re-saved a name
+       that was already on the screen. */
     return table()
-      .upsert({ id: user.id, username: checked.value }, { onConflict: 'id' })
+      .upsert({
+        id: user.id,
+        username: checked.value,
+        first_name: trimmed(user.firstName),
+        last_name: trimmed(user.lastName)
+      }, { onConflict: 'id' })
       .select('username')
       .single()
       .then(function (response) {
@@ -101,6 +141,7 @@ window.MyMon = window.MyMon || {};
     validate: validate,
     load: load,
     isAvailable: isAvailable,
-    save: save
+    save: save,
+    saveName: saveName
   };
 })(window.MyMon);

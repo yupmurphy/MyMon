@@ -16,6 +16,21 @@
   <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin />
   <link href="https://fonts.googleapis.com/css2?family=Nunito:wght@400;600;700;800;900&display=swap" rel="stylesheet" />
   <link rel="stylesheet" href="style.css" />
+
+  <!-- Before a single pixel is painted. The stylesheet follows the system
+       setting by itself; this is only for the case where the button has
+       overruled it, because a page that reached the screen first would
+       flash white on its way to dark. -->
+  <script>
+    (function () {
+      try {
+        var chosen = localStorage.getItem('mymon.theme');
+        if (chosen === 'dark' || chosen === 'light') {
+          document.documentElement.setAttribute('data-theme', chosen);
+        }
+      } catch (err) { /* private window, or site data blocked */ }
+    })();
+  </script>
 </head>
 
 <!-- "booting" hides the page until we know who is signed in, so nobody ever
@@ -36,6 +51,21 @@
         <a href="dashboard.html" data-page="dashboard">Dashboard</a>
         <a href="settings.html" data-page="settings">Settings</a>
       </nav>
+
+      <!-- Light or dark. With nothing chosen the stylesheet follows the
+           system setting on its own; this overrules it, per device. -->
+      <button class="theme-btn" type="button" data-theme-toggle
+              aria-label="Switch to the dark theme" title="Switch to the dark theme">
+        <svg class="theme-btn__moon" viewBox="0 0 24 24" fill="none" stroke="currentColor"
+             stroke-width="2.2" stroke-linecap="round" stroke-linejoin="round" aria-hidden="true">
+          <path d="M20.2 14.3A8.4 8.4 0 0 1 9.7 3.8a8.6 8.6 0 1 0 10.5 10.5z" />
+        </svg>
+        <svg class="theme-btn__sun" viewBox="0 0 24 24" fill="none" stroke="currentColor"
+             stroke-width="2.2" stroke-linecap="round" aria-hidden="true">
+          <circle cx="12" cy="12" r="4.1" />
+          <path d="M12 2.6v2.1M12 19.3v2.1M2.6 12h2.1M19.3 12h2.1M5.3 5.3l1.5 1.5M17.2 17.2l1.5 1.5M18.7 5.3l-1.5 1.5M6.8 17.2l-1.5 1.5" />
+        </svg>
+      </button>
     </div>
   </header>
 
@@ -227,7 +257,7 @@
         <a href="index.html?stay=1" data-page="home">Home</a>
         <a href="about.html" data-page="about">About</a>
       </nav>
-      <p class="site-footer__meta">&copy; <span data-year>2026</span> MyMon &mdash; v1.1.20</p>
+      <p class="site-footer__meta">&copy; <span data-year>2026</span> MyMon &mdash; v1.1.21</p>
     </div>
   </footer>
 

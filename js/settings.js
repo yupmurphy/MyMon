@@ -134,11 +134,18 @@
 
     session.updateName(first, last).then(function (updated) {
       user = updated;
+
+      /* The account has it; the groups you are in read it off the profile, so
+         the second copy goes out in the same breath. If that write fails the
+         name is still saved where it matters most — the toast below would be
+         a lie, so the failure is reported rather than swallowed. */
+      return NS.profile.saveName(first, last).then(function () { return updated; });
+    }).then(function (updated) {
       dom.save.disabled = false;
       dom.save.textContent = 'Save';
       ui.mountHeader({ page: 'settings' });
       renderHint();
-      ui.toast(first || last ? 'Saved. Hello, ' + user.name + '.' : 'Back to your Google name.');
+      ui.toast(first || last ? 'Saved. Hello, ' + updated.name + '.' : 'Back to your Google name.');
     }).catch(function (error) {
       dom.save.disabled = false;
       dom.save.textContent = 'Save';

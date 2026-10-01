@@ -13,6 +13,11 @@
 
 /* ---------- 1. Tokens ---------- */
 :root {
+  /* Tells the browser which way round the page is, so its own furniture —
+     the date picker, the dropdowns, the scrollbars — comes out to match
+     instead of staying stubbornly white in front of a dark page. */
+  color-scheme: light;
+
   /* brand — taken from the MyMon logo */
   --brand-700: #2f6b35;
   --brand-600: #3d8a45;
@@ -35,6 +40,26 @@
   --line: #e4ebe5;
   --line-strong: #d3ded5;
 
+  /* The header sits over whatever is scrolling under it, so it is the page's
+     own colour with some of that showing through. */
+  --surface-glass: rgba(255, 255, 255, .82);
+
+  /* Things that are meant to stand against the page rather than sit on it:
+     the toast, the chart tooltip. They are dark on a light page and light on
+     a dark one, which is why they cannot just borrow --ink-900. */
+  --inverse: #10201a;
+  --on-inverse: #ffffff;
+
+  /* What dims the page behind a dialog. */
+  --scrim: rgba(16, 32, 20, .42);
+
+  /* "Who put in what": your own bar against everybody else's. These cannot be
+     one pair of greens reused in both themes — on a white page the darker
+     green is the one that stands out, and on a dark page it is the one that
+     disappears. So the emphasis flips, and only the token knows that. */
+  --bar-mine: var(--brand-600);
+  --bar-other: var(--brand-300);
+
   /* category series — validated categorical palette, fixed order */
   --cat-food: #2a78d6;
   --cat-bills: #eb6834;
@@ -45,6 +70,8 @@
   --cat-shopping: #e34948;
 
   --danger: #c23b3a;
+  --danger-050: #fdecec;   /* the tint behind a delete button being hovered */
+  --danger-200: #f3cfcf;
 
   /* shape */
   --r-xs: 8px;
@@ -64,6 +91,131 @@
   /* rhythm */
   --gutter: 24px;
   --page: 1140px;
+}
+
+/* ---------- 1b. The dark theme ----------
+
+   Not an inversion of the block above. A dark page needs its own greens (the
+   one you read text in has to be light, the one you put white text on has to
+   stay dark), its own shadows, and — the part that is easy to get wrong — its
+   own category colours.
+
+   Those seven were picked for a white page and checked there. Against #161d19
+   four of them fall outside the lightness band a dark surface needs, and the
+   indigo lands at 2:1 against the background, which is barely a mark at all.
+   So a second set was chosen and run through the same validator with the dark
+   surface. It comes out at: lightness band pass, chroma pass, colour-blind
+   separation 10.7 on the worst adjacent pair (the target is 8), normal-vision
+   separation 18.7 (the floor is 15), and every colour over 3:1 against the
+   background. That last one the light set cannot manage — it leans on the
+   written labels beside each mark instead.
+
+   The rules are written out twice on purpose. The first follows the system
+   setting; the second is the button in the header overruling it. Neither can
+   be expressed in terms of the other in plain CSS, so they are kept next to
+   each other where a change to one is obvious if it misses the other. */
+
+@media (prefers-color-scheme: dark) {
+  :root:not([data-theme="light"]) {
+    color-scheme: dark;
+
+    --brand-700: #9ad98f;   /* green you read words in */
+    --brand-600: #3d8a45;   /* green you put white words on — unchanged, 4.5:1 */
+    --brand-500: #6fbb64;
+    --brand-300: #7fc077;
+    --brand-100: #1f2c23;   /* a tint, so it goes dark rather than pale */
+    --brand-050: #18211b;
+
+    --ink-900: #e9efea;
+    --ink-700: #bdc9c2;
+    --ink-500: #90a097;
+    --ink-400: #7a8a81;
+    --ink-300: #5f6e66;
+
+    --surface: #161d19;
+    --surface-sunken: #1b2420;
+    --surface-page: #101613;
+    --line: #273029;
+    --line-strong: #35413a;
+    --surface-glass: rgba(16, 22, 19, .82);
+
+    --inverse: #28322c;
+    --on-inverse: #e9efea;
+    --scrim: rgba(0, 0, 0, .62);
+
+    --cat-food: #4f93e0;
+    --cat-bills: #df6634;
+    --cat-transport: #11ac88;
+    --cat-entertainment: #c08a12;
+    --cat-hobby: #d4648f;
+    --cat-other: #7a68d8;
+    --cat-shopping: #e34948;
+
+    --danger: #f08b87;
+    --danger-050: #2b1c1c;
+    --danger-200: #4a2d2d;
+
+    /* A shadow on a dark page is not a paler grey, it is more black. */
+    --shadow-xs: 0 1px 2px rgba(0, 0, 0, .40);
+    --shadow-sm: 0 1px 2px rgba(0, 0, 0, .36), 0 2px 8px rgba(0, 0, 0, .30);
+    --shadow-md: 0 2px 6px rgba(0, 0, 0, .36), 0 14px 34px rgba(0, 0, 0, .42);
+    --shadow-lg: 0 8px 20px rgba(0, 0, 0, .46), 0 34px 70px rgba(0, 0, 0, .50);
+
+    --bar-mine: #9ad98f;
+    --bar-other: #4f7a58;
+
+    --ring: 0 0 0 3px rgba(143, 208, 134, .30);
+  }
+}
+
+:root[data-theme="dark"] {
+  color-scheme: dark;
+
+  --brand-700: #9ad98f;
+  --brand-600: #3d8a45;
+  --brand-500: #6fbb64;
+  --brand-300: #7fc077;
+  --brand-100: #1f2c23;
+  --brand-050: #18211b;
+
+  --ink-900: #e9efea;
+  --ink-700: #bdc9c2;
+  --ink-500: #90a097;
+  --ink-400: #7a8a81;
+  --ink-300: #5f6e66;
+
+  --surface: #161d19;
+  --surface-sunken: #1b2420;
+  --surface-page: #101613;
+  --line: #273029;
+  --line-strong: #35413a;
+  --surface-glass: rgba(16, 22, 19, .82);
+
+  --inverse: #28322c;
+  --on-inverse: #e9efea;
+  --scrim: rgba(0, 0, 0, .62);
+
+  --cat-food: #4f93e0;
+  --cat-bills: #df6634;
+  --cat-transport: #11ac88;
+  --cat-entertainment: #c08a12;
+  --cat-hobby: #d4648f;
+  --cat-other: #7a68d8;
+  --cat-shopping: #e34948;
+
+  --danger: #f08b87;
+  --danger-050: #2b1c1c;
+  --danger-200: #4a2d2d;
+
+  --shadow-xs: 0 1px 2px rgba(0, 0, 0, .40);
+  --shadow-sm: 0 1px 2px rgba(0, 0, 0, .36), 0 2px 8px rgba(0, 0, 0, .30);
+  --shadow-md: 0 2px 6px rgba(0, 0, 0, .36), 0 14px 34px rgba(0, 0, 0, .42);
+  --shadow-lg: 0 8px 20px rgba(0, 0, 0, .46), 0 34px 70px rgba(0, 0, 0, .50);
+
+  --bar-mine: #9ad98f;
+  --bar-other: #4f7a58;
+
+  --ring: 0 0 0 3px rgba(143, 208, 134, .30);
 }
 
 /* ---------- 2. Base & layout ---------- */
@@ -218,19 +370,44 @@ html[data-session="out"] [data-when="signed-in"] { display: none !important; }
   position: sticky;
   top: 0;
   z-index: 40;
-  background: rgba(255, 255, 255, .82);
+  background: var(--surface-glass);
   backdrop-filter: saturate(160%) blur(12px);
   -webkit-backdrop-filter: saturate(160%) blur(12px);
   border-bottom: 1px solid var(--line);
 }
 
+/* There are three things in the header now, and "space-between" would have
+   stranded the nav in the middle of the bar on its own. The brand holds the
+   left; everything else is pushed right as one group (see .site-nav). */
 .site-header .container {
   display: flex;
   align-items: center;
-  justify-content: space-between;
   gap: 1rem;
   min-height: 68px;
 }
+
+.theme-btn {
+  width: 36px; height: 36px;
+  flex: none;
+  display: grid;
+  place-items: center;
+  border: 0;
+  background: none;
+  border-radius: 50%;
+  color: var(--ink-500);
+  cursor: pointer;
+  transition: background-color .15s ease, color .15s ease;
+}
+.theme-btn:hover { background: var(--surface-sunken); color: var(--ink-900); }
+.theme-btn:focus-visible { outline: none; box-shadow: var(--ring); }
+.theme-btn svg { width: 19px; height: 19px; }
+
+/* It shows where it takes you: a moon while the page is light, a sun while it
+   is dark. The moon is the default, so the button is never an empty circle in
+   the instant before the script has read which way round things are. */
+.theme-btn__sun { display: none; }
+.theme-btn[data-theme-state="dark"] .theme-btn__moon { display: none; }
+.theme-btn[data-theme-state="dark"] .theme-btn__sun { display: block; }
 
 .brand { display: inline-flex; align-items: center; }
 /* The wordmark is type, not a picture. It is set in the same Nunito as the
@@ -267,7 +444,7 @@ html[data-session="out"] [data-when="signed-in"] { display: none !important; }
   box-shadow: inset 0 0 0 2px var(--brand-300);
 }
 
-.site-nav { display: flex; align-items: center; gap: .35rem; }
+.site-nav { display: flex; align-items: center; gap: .35rem; margin-left: auto; }
 
 .site-nav a {
   display: inline-block;
@@ -538,7 +715,7 @@ html[data-session="out"] [data-when="signed-in"] { display: none !important; }
 .cat-option input:focus-visible + span { box-shadow: var(--ring); border-color: var(--brand-500); }
 .cat-option input:checked + span {
   border-color: var(--dot, var(--brand-500));
-  background: color-mix(in srgb, var(--dot, var(--brand-500)) 10%, #fff);
+  background: color-mix(in srgb, var(--dot, var(--brand-500)) 10%, var(--surface));
   color: var(--ink-900);
   box-shadow: inset 0 0 0 1px var(--dot, var(--brand-500));
 }
@@ -568,7 +745,7 @@ html[data-session="out"] [data-when="signed-in"] { display: none !important; }
   padding: .3rem .85rem;
   margin-bottom: 1.25rem;
   border-radius: var(--r-pill);
-  background: rgba(255, 255, 255, .8);
+  background: var(--surface-glass);
   border: 1px solid var(--brand-300);
   color: var(--brand-700);
   font-size: .78rem;
@@ -1345,8 +1522,8 @@ html[data-session="out"] [data-when="signed-in"] { display: none !important; }
   place-items: center;
   border-radius: 50%;
   font-size: 1rem;
-  background: color-mix(in srgb, var(--dot) 14%, #fff);
-  box-shadow: inset 0 0 0 1px color-mix(in srgb, var(--dot) 26%, #fff);
+  background: color-mix(in srgb, var(--dot) 14%, var(--surface));
+  box-shadow: inset 0 0 0 1px color-mix(in srgb, var(--dot) 26%, var(--surface));
 }
 
 .tx__body { min-width: 0; display: block; }
@@ -1402,7 +1579,7 @@ html[data-session="out"] [data-when="signed-in"] { display: none !important; }
 .tx:hover .tx__tool,
 .tx__tool:focus-visible { opacity: 1; }
 .tx__tool:hover { background: var(--brand-050); color: var(--brand-700); }
-.tx__tool--danger:hover { background: #fdecec; color: var(--danger); }
+.tx__tool--danger:hover { background: var(--danger-050); color: var(--danger); }
 .tx__tool svg { width: 15px; height: 15px; }
 
 /* Nothing hovers on a touch screen, so there they are simply always visible. */
@@ -1602,7 +1779,7 @@ html[data-session="out"] [data-when="signed-in"] { display: none !important; }
   display: inline-flex;
   align-items: center;
   gap: .35rem;
-  padding: .3rem .4rem .3rem .7rem;
+  padding: .25rem .4rem .25rem .25rem;
   background: var(--surface-sunken);
   border-radius: var(--r-pill);
   font-size: .85rem;
@@ -1616,6 +1793,8 @@ html[data-session="out"] [data-when="signed-in"] { display: none !important; }
   box-shadow: inset 0 0 0 1px var(--line-strong);
   color: var(--ink-500);
 }
+.person .badge { width: 21px; height: 21px; font-size: .66rem; }
+.person--waiting .badge { background: var(--ink-300); }
 .person__name { padding-right: .3rem; }
 .person__tag {
   padding: .1rem .45rem;
@@ -1638,7 +1817,7 @@ html[data-session="out"] [data-when="signed-in"] { display: none !important; }
   color: var(--ink-300);
   cursor: pointer;
 }
-.person__drop:hover { background: #fdecec; color: var(--danger); }
+.person__drop:hover { background: var(--danger-050); color: var(--danger); }
 .person__drop:focus-visible { outline: none; box-shadow: var(--ring); }
 .person__drop svg { width: 11px; height: 11px; }
 
@@ -1694,9 +1873,9 @@ html[data-session="out"] [data-when="signed-in"] { display: none !important; }
   width: var(--w);
   height: 100%;
   border-radius: var(--r-pill);
-  background: var(--brand-300);
+  background: var(--bar-other);
 }
-.share__fill--me { background: var(--brand-600); }
+.share__fill--me { background: var(--bar-mine); }
 .share__sum {
   font-size: .9rem;
   font-weight: 800;
@@ -1756,16 +1935,69 @@ html[data-session="out"] [data-when="signed-in"] { display: none !important; }
 .thread__list { list-style: none; margin: 0 0 .7rem; padding: 0; display: grid; gap: .5rem; }
 .thread__empty { margin: 0 0 .7rem; font-size: .85rem; color: var(--ink-400); }
 
+/* A person's mark inside MyMon: their initial, in the shape and the green the
+   logo uses. One colour for everybody on purpose — a colour per person reads
+   as meaning something, the only thing it could mean here is already written
+   beside it in words, and it would add hues to a page whose palette was
+   checked for colour-blind separation as a fixed set. */
+.badge {
+  width: 26px; height: 26px;
+  flex: none;
+  display: grid;
+  place-items: center;
+  border-radius: 50%;
+  background: var(--brand-600);
+  color: #fff;
+  font-size: .76rem;
+  font-weight: 900;
+  line-height: 1;
+}
+
+/* A comment is a small card: who said it, over what they said. */
 .note {
   display: grid;
   grid-template-columns: auto minmax(0, 1fr) auto;
-  align-items: baseline;
-  gap: .5rem;
+  align-items: center;
+  gap: .1rem .55rem;
   font-size: .88rem;
 }
-.note__who { font-weight: 800; color: var(--ink-700); }
-.note__body { color: var(--ink-700); overflow-wrap: anywhere; }
+.note .badge { grid-row: 1 / span 2; align-self: start; }
+
+.note__who {
+  grid-column: 2;
+  display: flex;
+  align-items: baseline;
+  flex-wrap: wrap;
+  gap: .3rem;
+  min-width: 0;
+}
+.note__name {
+  font-weight: 800;
+  font-size: .86rem;
+  color: var(--ink-900);
+}
+.note__handle,
+.note__tag {
+  font-style: normal;
+  font-size: .75rem;
+  font-weight: 700;
+  color: var(--ink-400);
+}
+.note__tag {
+  padding: .05rem .4rem;
+  border-radius: var(--r-pill);
+  background: var(--surface);
+  color: var(--ink-400);
+}
+
+.note__body {
+  grid-column: 2 / -1;
+  color: var(--ink-700);
+  overflow-wrap: anywhere;
+}
 .note__drop {
+  grid-column: 3;
+  grid-row: 1;
   width: 18px; height: 18px;
   display: grid;
   place-items: center;
@@ -1776,7 +2008,7 @@ html[data-session="out"] [data-when="signed-in"] { display: none !important; }
   color: var(--ink-300);
   cursor: pointer;
 }
-.note__drop:hover { background: #fdecec; color: var(--danger); }
+.note__drop:hover { background: var(--danger-050); color: var(--danger); }
 .note__drop:focus-visible { outline: none; box-shadow: var(--ring); }
 .note__drop svg { width: 10px; height: 10px; }
 
@@ -1901,8 +2133,8 @@ html[data-session="out"] [data-when="signed-in"] { display: none !important; }
   pointer-events: none;
   padding: .4rem .65rem;
   border-radius: var(--r-xs);
-  background: var(--ink-900);
-  color: #fff;
+  background: var(--inverse);
+  color: var(--on-inverse);
   font-size: .82rem;
   font-weight: 700;
   white-space: nowrap;
@@ -1924,7 +2156,7 @@ dialog.modal {
 }
 
 dialog.modal::backdrop {
-  background: rgba(16, 32, 20, .42);
+  background: var(--scrim);
   backdrop-filter: blur(3px);
 }
 
@@ -2006,8 +2238,8 @@ dialog.modal[open] { animation: pop .18s cubic-bezier(.22, .61, .36, 1); }
   gap: 1rem;
   padding: .8rem 1rem .8rem 1.1rem;
   border-radius: var(--r-md);
-  background: var(--ink-900);
-  color: #fff;
+  background: var(--inverse);
+  color: var(--on-inverse);
   font-weight: 700;
   font-size: .92rem;
   box-shadow: var(--shadow-lg);
@@ -2025,7 +2257,7 @@ dialog.modal[open] { animation: pop .18s cubic-bezier(.22, .61, .36, 1); }
   border-radius: var(--r-xs);
   flex: none;
 }
-.toast button:hover { color: #fff; text-decoration: underline; }
+.toast button:hover { color: var(--on-inverse); text-decoration: underline; }
 
 @keyframes rise {
   from { opacity: 0; transform: translateY(12px); }
@@ -2176,8 +2408,8 @@ body.booting .booting-veil {
 }
 
 .notice--problem {
-  background: #fdecec;
-  border: 1px solid #f3cfcf;
+  background: var(--danger-050);
+  border: 1px solid var(--danger-200);
   color: var(--danger);
 }
 

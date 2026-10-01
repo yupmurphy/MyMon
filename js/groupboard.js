@@ -254,11 +254,16 @@
 
     return '<ul class="people">' + members.map(function (m) {
       var isOwner = m.userId === group.ownerId;
-      var label = groups.usernameOf(m.userId);
+      var person = groups.personOf(m.userId);
+      var label = person.title;
 
-      return '<li class="person' + (m.state === 'invited' ? ' person--waiting' : '') + '">' +
+      return '<li class="person' + (m.state === 'invited' ? ' person--waiting' : '') + '"' +
+          (person.fullName && person.handle ? ' title="' + esc(person.handle) + '"' : '') + '>' +
+        badgeHtml(person) +
         '<span class="person__name">' + esc(label) + '</span>' +
-        (isOwner ? '<span class="person__tag">made it</span>' : '') +
+        (person.isMe && !isOwner ? '<span class="person__tag">you</span>' : '') +
+        (isOwner ? '<span class="person__tag">' + (person.isMe ? 'you, made it' : 'made it') +
+                   '</span>' : '') +
         (m.state === 'invited' ? '<span class="person__tag">invited</span>' : '') +
         (group.iOwnIt && !isOwner
           ? '<button class="person__drop" type="button" data-remove-member="' + esc(m.userId) + '"' +
@@ -275,9 +280,16 @@
     return '' +
       '<div class="invite-row">' +
         '<label class="invite-row__label" for="invite-name">Invite by username</label>' +
+        /* The same @-in-front box the username field in Settings uses, so the
+           sign is on the screen instead of being something you have to know.
+           Typing one anyway is harmless — groups.invite() takes it off. */
         '<div class="invite-row__fields">' +
-          '<input class="input" id="invite-name" autocomplete="off" spellcheck="false" ' +
-            'maxlength="20" placeholder="their username" data-invite-field />' +
+          '<div class="input-at">' +
+            '<span aria-hidden="true">@</span>' +
+            '<input id="invite-name" autocomplete="off" spellcheck="false" ' +
+              'autocapitalize="none" maxlength="21" placeholder="their username" ' +
+              'data-invite-field />' +
+          '</div>' +
           '<button class="btn btn--ghost" type="button" data-invite="' + esc(group.id) + '">' +
             'Invite</button>' +
         '</div>' +
@@ -350,7 +362,7 @@
     var open = openThread === entry.id;
 
     return '' +
-      '<li class="tx tx--group" style="--dot: ' + (category ? category.color : '#999') + '">' +
+      '<li class="tx tx--group" style="--dot: ' + (category ? category.color : 'var(--ink-300)') + '">' +
         '<span class="tx__icon" aria-hidden="true">' + (category ? category.icon : '') + '</span>' +
         '<span class="tx__body">' +
           /* The space before the name is not decoration. Without it the two
@@ -395,6 +407,18 @@
       '</li>';
   }
 
+  /* The letter badge. The same shape the MyMon logo has, in the same green:
+     this is a person's mark inside this app, not an attempt at a photograph.
+
+     Deliberately one colour for everybody rather than a hue picked from the
+     name. A colour per person reads as meaning something, and the only thing
+     it could mean here is already said in words beside it — and it would be a
+     seventh, eighth, ninth colour on a page whose palette was checked for
+     colour-blind separation as a fixed set. */
+  function badgeHtml(person) {
+    return '<span class="badge" aria-hidden="true">' + esc(person.initial) + '</span>';
+  }
+
   function threadHtml(entry, thread) {
     var who = groups.me();
 
@@ -402,16 +426,27 @@
       '<div class="thread">' +
         (thread.length
           ? '<ul class="thread__list">' + thread.map(function (note) {
+              var person = groups.personOf(note.authorId);
+
               return '<li class="note">' +
-                '<span class="note__who">' + esc(groups.usernameOf(note.authorId)) + '</span> ' +
-                '<span class="note__body">' + esc(note.body) + '</span>' +
+                badgeHtml(person) +
+                '<span class="note__who">' +
+                  '<b class="note__name">' + esc(person.title) + '</b>' +
+                  /* The handle is left out when the name is already the handle,
+                     rather than printed twice in two sizes. */
+                  (person.handle && person.fullName
+                    ? ' <i class="note__handle">' + esc(person.handle) + '</i>'
+                    : '') +
+                  (person.isMe ? ' <i class="note__tag">you</i>' : '') +
+                '</span> ' +
                 (note.authorId === who
                   ? '<button class="note__drop" type="button" data-remove-comment="' +
                     esc(note.id) + '" aria-label="Delete your comment">' +
                     '<svg viewBox="0 0 24 24" fill="none" stroke="currentColor" ' +
                     'stroke-width="2.4" stroke-linecap="round" aria-hidden="true">' +
                     '<path d="M6 6l12 12M18 6L6 18"/></svg></button>'
-                  : '') +
+                  : '<span></span>') +
+                '<span class="note__body">' + esc(note.body) + '</span>' +
               '</li>';
             }).join('') + '</ul>'
           : '<p class="thread__empty">No comments yet.</p>') +
