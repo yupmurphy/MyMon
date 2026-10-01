@@ -40,4 +40,9 @@ To see the list:
 select version, name from supabase_migrations.schema_migrations order by version;
 ```
 
-It should name the same four files as this folder.
+It should name the same files as this folder, in the same order.
+
+The last two were applied through the migration tool rather than by hand, so
+they went into that list by themselves. Their file names here carry the version
+the database recorded, which is why those timestamps are a few minutes later
+than the moment the file was written.

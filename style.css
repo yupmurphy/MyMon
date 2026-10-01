@@ -1193,10 +1193,16 @@ html[data-session="out"] [data-when="signed-in"] { display: none !important; }
   border-radius: var(--r-pill);
   transition: border-color .15s ease, box-shadow .15s ease, background-color .15s ease;
 }
+/* Everywhere else focus is a solid border plus the soft --ring outside it, and
+   on a small radius the eye reads the two as one thickened edge. This is the
+   only field shaped like a pill, and at that radius they separate into two
+   visible rings — a dark one and a pale one with daylight between them. So
+   here the halo is dropped and the ring is simply the border continued in the
+   same colour: 1px of border and 1px of shadow, one unbroken 2px line. */
 .search:focus-within {
   background: var(--surface);
-  border-color: var(--brand-500);
-  box-shadow: var(--ring);
+  border-color: var(--brand-600);
+  box-shadow: 0 0 0 1px var(--brand-600);
 }
 
 .search__icon {
