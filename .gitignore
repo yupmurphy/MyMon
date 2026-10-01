@@ -1,5 +1,6 @@
 # local tooling, not part of the site
 .claude/
+.mcp.json
 
 # OS noise
 Thumbs.db
