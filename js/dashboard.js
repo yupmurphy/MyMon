@@ -222,7 +222,7 @@
   function renderTransactions(stats) {
     var hasData = stats.count > 0;
     dom.txEmpty.classList.toggle('hidden', hasData);
-    dom.txGroups.classList.toggle('hidden', !hasData);
+    dom.txScroll.classList.toggle('hidden', !hasData);
     dom.txHint.textContent = hasData
       ? stats.count + (stats.count === 1 ? ' expense' : ' expenses')
       : '';
@@ -574,6 +574,7 @@
       breakdown: byId('breakdown'),
       breakdownEmpty: byId('breakdown-empty'),
       breakdownHint: byId('breakdown-hint'),
+      txScroll: byId('tx-scroll'),
       txGroups: byId('tx-groups'),
       txEmpty: byId('tx-empty'),
       txHint: byId('tx-hint'),

@@ -123,7 +123,13 @@
             <span class="card__hint" id="tx-hint"></span>
           </div>
 
-          <div id="tx-groups"></div>
+          <!-- The list used to grow for as long as the month did, pushing the
+               rest of the page down. Now it lives in a box of its own height
+               and scrolls inside it. The outer div is the box that scrolls;
+               the inner one is what the script fills with the days. -->
+          <div class="tx-scroll hidden" id="tx-scroll">
+            <div class="tx-stack" id="tx-groups"></div>
+          </div>
 
           <div class="empty hidden" id="tx-empty">
             <div class="empty__art">
@@ -152,7 +158,7 @@
         <img src="MyM.png" class="logo" alt="" />
         <p>Your money habits. Under &ldquo;parental&rdquo; supervision. <b>Again.</b></p>
       </div>
-      <p class="site-footer__meta">&copy; <span data-year>2026</span> MyMon &mdash; v1.1.11</p>
+      <p class="site-footer__meta">&copy; <span data-year>2026</span> MyMon &mdash; v1.1.12</p>
       <p>Saved to your account.</p>
     </div>
   </footer>

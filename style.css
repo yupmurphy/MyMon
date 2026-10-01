@@ -1064,13 +1064,58 @@ a.user-chip:hover { border-color: var(--brand-300); background: var(--brand-050)
 .stat p { margin: 0; }
 
 /* transaction list */
+
+/* The box the list is kept in. Without it a long month made the card as tall
+   as the month was, and everything under it — the footer most of all — walked
+   off the bottom of the screen. The height is capped instead, and the list
+   scrolls inside; a short month simply makes a short box, because it is a
+   max-height and not a height. */
+.tx-scroll {
+  max-height: min(32rem, 70vh);
+  overflow-y: auto;
+  padding: 0 .9rem;                 /* also absorbs the rows' -.5rem margins,
+                                       so nothing can overflow sideways */
+  border: 1px solid var(--line);
+  border-radius: var(--r-md);
+  background: var(--surface);
+
+  /* Reaching the end of the list should stop there rather than carry on
+     scrolling the page underneath it. */
+  overscroll-behavior-y: contain;
+  scrollbar-width: thin;
+  scrollbar-color: var(--line-strong) transparent;
+}
+
+.tx-scroll::-webkit-scrollbar { width: 10px; }
+.tx-scroll::-webkit-scrollbar-track { background: transparent; }
+.tx-scroll::-webkit-scrollbar-thumb {
+  background: var(--line-strong);
+  border-radius: var(--r-pill);
+  border: 3px solid var(--surface);  /* keeps the thumb narrow and off the edge */
+}
+.tx-scroll::-webkit-scrollbar-thumb:hover { background: var(--ink-300); }
+
+/* The top and bottom breathing room sits here, not on the box, so that a day
+   heading can stick to the very top edge while scrolling. */
+.tx-stack { padding: .9rem 0; }
+
 .tx-day {
   font-size: .76rem;
   font-weight: 800;
   letter-spacing: .05em;
   text-transform: uppercase;
   color: var(--ink-400);
-  margin: 1.5rem 0 .35rem;
+  margin: 1.5rem -.5rem .1rem;
+
+  /* Scrolling a list of dates is only useful if you can still see which date
+     you are looking at, so the heading parks at the top edge until the next
+     one pushes it off. It needs the card's own background to do that, or the
+     rows would read straight through it. */
+  position: sticky;
+  top: 0;
+  z-index: 1;
+  padding: .25rem .5rem;
+  background: var(--surface);
 }
 .tx-group:first-child .tx-day { margin-top: 0; }
 
@@ -1413,6 +1458,15 @@ dialog.modal[open] { animation: pop .18s cubic-bezier(.22, .61, .36, 1); }
   .tx__body { grid-column: 2; grid-row: 1; }
   .tx__amount { grid-column: 2; grid-row: 2; }
   .tx__tools { grid-column: 3; grid-row: 1 / span 2; }
+
+  /* Taller rows and a shorter screen: at the desktop height the box would be
+     nearly everything you can see, leaving almost nothing to grab to scroll
+     the page itself. For the same reason the scroll is allowed to carry on
+     into the page once the list ends, instead of stopping at its edge. */
+  .tx-scroll {
+    max-height: min(28rem, 55vh);
+    overscroll-behavior-y: auto;
+  }
 }
 
 /* ---------- 10. Signing in and waiting ---------- */
