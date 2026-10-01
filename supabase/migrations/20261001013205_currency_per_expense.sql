@@ -1,6 +1,10 @@
 -- MyMon — give every expense its own currency.
--- Paste this whole file into the Supabase SQL Editor and press Run.
--- It is safe to run more than once.
+--
+-- RUN THIS ONCE AND ONLY ONCE. Adding the column is harmless to repeat, but
+-- the backfill below is not: it fills the currency in from the owner's chosen
+-- one, and a second run would catch genuine dollar expenses belonging to
+-- somebody whose account says lei, and turn them into lei. It is recorded as
+-- already applied for exactly that reason — see README.md.
 --
 -- Why a column and not a setting: 800 lei spent last week *were* lei. That is
 -- a fact about the expense, not a preference about how to show it. Keeping the

@@ -1,5 +1,9 @@
 -- MyMon — usernames.
--- Run this in the Supabase SQL Editor after schema.sql. Safe to run twice.
+--
+-- Creates only what is missing, so running it again changes nothing. Note that
+-- the touch_updated_at function below is the version as it was first written;
+-- 20261001131723 pins its search_path afterwards. Migrations are a history, so
+-- this one is left as it happened rather than corrected in place.
 --
 -- A username cannot live in user_metadata: that field is writable by its own
 -- owner and has no way to enforce that two people do not pick the same name.

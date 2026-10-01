@@ -1,6 +1,7 @@
--- MyMon — database schema.
--- Paste this whole file into the Supabase SQL Editor and press Run.
--- It is safe to run more than once.
+-- MyMon — the expenses table. The first migration: everything else builds
+-- on this one.
+--
+-- Creates only what is missing, so running it again changes nothing.
 
 -- ---------------------------------------------------------------------------
 -- The one table: an expense belongs to exactly one user.
