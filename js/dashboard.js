@@ -517,7 +517,7 @@
     dom.title.textContent = editing ? 'Edit expense' : 'Add expense';
     dom.subtitle.textContent = editing
       ? 'The same expense is updated, and it keeps the currency it was logged in.'
-      : 'This month or last month, nothing in the future.';
+      : 'Any day up to today — older months are fine.';
 
     /* An expense is logged in one currency and stays there, so the sign in
        front of the field is the one this particular expense uses. */
@@ -531,17 +531,13 @@
       dom.fieldDate.value = tx.date;
       dom.fieldComment.value = tx.comment || '';
       updateCommentCount();
-
-      /* An expense older than the usual window keeps its own date as a valid
-         choice — editing the comment must not force the date to move. */
-      var floor = data.previousMonth() + '-01';
-      dom.fieldDate.min = tx.date < floor ? tx.date : floor;
     } else {
-      dom.fieldDate.min = data.previousMonth() + '-01';
       dom.fieldDate.value = viewMonth === data.currentMonth()
         ? data.today()
-        : lastLoggableDayOf(viewMonth);
+        : lastDayOf(viewMonth);
     }
+
+    dom.fieldDate.min = data.oldestDate();
 
     setSaving(false);
 
@@ -559,9 +555,10 @@
     openDialog(tx);
   }
 
-  /* When browsing last month, pre-fill its last day rather than today's date. */
-  function lastLoggableDayOf(monthKey) {
-    if (monthKey !== data.previousMonth()) return data.today();
+  /* While browsing an older month, pre-fill its last day rather than today —
+     you are almost certainly adding something to the month you are looking at. */
+  function lastDayOf(monthKey) {
+    if (monthKey >= data.currentMonth()) return data.today();
     var year = parseInt(monthKey.slice(0, 4), 10);
     var month = parseInt(monthKey.slice(5, 7), 10);
     var lastDay = new Date(year, month, 0).getDate();

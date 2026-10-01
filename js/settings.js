@@ -56,6 +56,37 @@
     } else {
       dom.since.textContent = '—';
     }
+
+    dom.exportBtn.disabled = all.length === 0;
+  }
+
+  /* Hands the browser a file it made itself — no server, no upload, nothing
+     leaves the machine except into the downloads folder. */
+  function downloadCsv() {
+    var all = data.all();
+    if (!all.length) {
+      ui.toast('There is nothing to download yet.');
+      return;
+    }
+
+    /* The byte order mark is what makes a spreadsheet read "Benzină" rather
+       than mojibake: without it Excel opens the file as the local code page,
+       and every accented letter comes out wrong. */
+    var blob = new Blob(['\ufeff' + data.toCsv()], { type: 'text/csv;charset=utf-8' });
+    var url = URL.createObjectURL(blob);
+
+    var link = document.createElement('a');
+    link.href = url;
+    link.download = 'mymon-' + data.today() + '.csv';
+    document.body.appendChild(link);
+    link.click();
+    link.parentNode.removeChild(link);
+
+    /* Letting go of the blob once the download has had a moment to start. */
+    window.setTimeout(function () { URL.revokeObjectURL(url); }, 2000);
+
+    ui.toast(all.length + (all.length === 1 ? ' expense' : ' expenses') +
+      ' saved to your downloads.');
   }
 
   function save(event) {
@@ -251,6 +282,7 @@
       form: byId('name-form'),
       email: byId('account-email'),
       count: byId('account-count'),
+      exportBtn: byId('export-csv'),
       since: byId('account-since'),
       username: byId('field-username'),
       userForm: byId('username-form'),
@@ -282,6 +314,8 @@
           renderHint();
           dom.form.dispatchEvent(new Event('submit', { cancelable: true }));
         });
+
+        dom.exportBtn.addEventListener('click', downloadCsv);
 
         var signOut = byId('sign-out');
         if (signOut) {

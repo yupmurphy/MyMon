@@ -159,10 +159,20 @@
           <span class="settings-row__label">First one</span>
           <span class="settings-row__value num" id="account-since">&mdash;</span>
         </div>
-        <p class="muted" style="margin-top: 1rem; margin-bottom: 0">
+        <p class="muted" style="margin-top: 1rem">
           Stored under your account, not in this browser. Signing out on one device
           leaves everything untouched on the others.
         </p>
+
+        <!-- All of it sits in one database, behind one account. That is fine
+             until it is not, and months of expenses cannot be typed back in
+             from memory. This is the copy that lives somewhere else. -->
+        <div class="settings-actions">
+          <button class="btn btn--ghost" type="button" id="export-csv">Download a copy</button>
+          <span class="card__hint" style="white-space: normal">
+            A spreadsheet of everything &mdash; opens in Excel, Numbers or Google Sheets.
+          </span>
+        </div>
       </section>
     </div>
   </main>
@@ -177,7 +187,7 @@
         <a href="index.html?stay=1" data-page="home">Home</a>
         <a href="about.html" data-page="about">About</a>
       </nav>
-      <p class="site-footer__meta">&copy; <span data-year>2026</span> MyMon &mdash; v1.1.16</p>
+      <p class="site-footer__meta">&copy; <span data-year>2026</span> MyMon &mdash; v1.1.17</p>
     </div>
   </footer>
 

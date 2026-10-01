@@ -48,6 +48,19 @@ window.MyMon = window.MyMon || {};
 
   function today() { return toKey(new Date()); }
 
+  /* How far back an expense may be dated. There is no good reason to stop
+     someone entering their own history — the chart shows a year of it and the
+     search looks through all of it — but an unbounded field turns a mistyped
+     year into a month stepper that walks back to 0226. Twenty years is past
+     any real use and short of any plausible typo. */
+  var OLDEST_YEARS = 20;
+
+  function oldestDate() {
+    var d = new Date();
+    d.setFullYear(d.getFullYear() - OLDEST_YEARS);
+    return toKey(d);
+  }
+
   function monthOf(dateKey) { return String(dateKey).slice(0, 7); }
 
   function currentMonth() { return monthOf(today()); }
@@ -189,13 +202,10 @@ window.MyMon = window.MyMon || {};
        date    never in the future, and only this month or last month
        comment optional
      The database repeats the amount, category and comment rules as constraints,
-     so a bug here cannot write nonsense. The month window stays here only: it
-     depends on today's date, which the database cannot check.
+     so a bug here cannot write nonsense. The date bounds stay here only: they
+     depend on today's date, which the database cannot check.
      Returns { ok, errors, value } — errors is keyed by field name. */
-
-  /* `allowDate` is the date an expense already has. Editing one must never be
-     blocked by the window rule below just for leaving its own date alone. */
-  function validate(input, allowDate) {
+  function validate(input) {
     var errors = {};
     var value = {};
 
@@ -237,9 +247,8 @@ window.MyMon = window.MyMon || {};
       errors.date = 'That date does not exist.';
     } else if (date > today()) {
       errors.date = 'The date cannot be in the future.';
-    } else if (date !== allowDate &&
-               monthOf(date) !== currentMonth() && monthOf(date) !== previousMonth()) {
-      errors.date = 'In v1 you can only log this month or last month.';
+    } else if (date < oldestDate()) {
+      errors.date = 'That is over ' + OLDEST_YEARS + ' years ago — check the year.';
     } else {
       value.date = date;
     }
@@ -309,7 +318,7 @@ window.MyMon = window.MyMon || {};
     var current = find(id);
     if (!current) return Promise.reject(new Error('That expense is no longer here.'));
 
-    var result = validate(input, current.date);
+    var result = validate(input);
     if (!result.ok) return Promise.resolve(result);
 
     /* An edit corrects what was spent, not what it was spent in — changing
@@ -596,6 +605,42 @@ window.MyMon = window.MyMon || {};
     }).sort(function (a, b) { return b.total - a.total; });
   }
 
+  /* ---------- taking it with you ------------------------------------------
+
+     All of this lives in one database, on one free plan, behind one Google
+     account. None of those is likely to disappear, but if any of them does
+     the record goes with it, and months of it cannot be typed back in from
+     memory. This is the copy that lives somewhere else. */
+
+  /* RFC 4180: a field is wrapped in quotes when it holds a comma, a quote or
+     a line break, and a quote inside it is written twice. Without this a note
+     like 'cinema, then dinner' would silently become two columns. */
+  function csvField(value) {
+    var text = String(value == null ? '' : value);
+    return /[",\r\n]/.test(text) ? '"' + text.replace(/"/g, '""') + '"' : text;
+  }
+
+  /* Oldest first — the cache is newest first, which is right for a screen and
+     backwards for a ledger you are going to scroll through. */
+  function toCsv() {
+    var rows = [['Date', 'Amount', 'Currency', 'Category', 'Note']];
+
+    cache.slice().reverse().forEach(function (tx) {
+      var category = categoryById(tx.category);
+      rows.push([
+        tx.date,
+        tx.amount.toFixed(2),
+        tx.currency,
+        category ? category.label : tx.category,
+        tx.comment || ''
+      ]);
+    });
+
+    return rows.map(function (row) {
+      return row.map(csvField).join(',');
+    }).join('\r\n');
+  }
+
   /* ---------- a run of months ---------------------------------------------
 
      Stepping month by month answers "what did I spend", one month at a time.
@@ -699,14 +744,12 @@ window.MyMon = window.MyMon || {};
       ['shopping', 89.99, 7, 'Running shoes'],
       ['other', 18, 11, '']
     ];
-    var floor = previousMonth() + '-01';
     var rows = [];
 
     picks.forEach(function (pick) {
       var date = new Date();
       date.setDate(date.getDate() - pick[2]);
       var key = toKey(date);
-      if (key < floor) return;
       rows.push({
         amount: pick[1], category: pick[0], spent_on: key, comment: pick[3],
         currency: NS.ui ? NS.ui.currencyCode() : 'USD'
@@ -726,6 +769,7 @@ window.MyMon = window.MyMon || {};
     monthOf: monthOf,
     currentMonth: currentMonth,
     previousMonth: previousMonth,
+    oldestDate: oldestDate,
     shiftMonth: shiftMonth,
     monthLabel: monthLabel,
     monthLabelRelative: monthLabelRelative,
@@ -746,6 +790,7 @@ window.MyMon = window.MyMon || {};
     statsFor: statsFor,
     search: search,
     totalsOf: totalsOf,
+    toCsv: toCsv,
     recentMonths: recentMonths,
     seedSample: seedSample,
     legacyExpenses: legacyExpenses,
