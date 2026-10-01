@@ -523,20 +523,47 @@ window.MyMon = window.MyMon || {};
   function foldText(value) {
     var text = String(value == null ? '' : value).toLowerCase();
     if (text.normalize) text = text.normalize('NFD').replace(/[\u0300-\u036f]/g, '');
-    return text;
+
+    /* Dates get written down a dozen ways. Folding every separator to the same
+       one makes 21/09, 21-09 and 21.09 a single search, whichever of them is
+       in the box and whichever is in the data. */
+    return text.replace(/[.\/-]/g, '.');
+  }
+
+  /* The spellings of one date. Four are enough to cover the rest by being
+     inside them: "09.2026" is already part of "21.09.2026", and "2026" is part
+     of all of them. The forms without a leading zero are written out because
+     "21.9" is what people actually type.
+
+     Day first, never month first: "03.04" would otherwise match both the 3rd
+     of April and the 4th of March, which is a wrong answer rather than a
+     generous one. */
+  function dateSpellings(dateKey) {
+    var year = dateKey.slice(0, 4);
+    var month = dateKey.slice(5, 7);
+    var day = dateKey.slice(8, 10);
+
+    return [
+      dateKey,                                        /* 2026-09-21 */
+      day + '.' + month + '.' + year,                 /* 21.09.2026 */
+      (+day) + '.' + (+month) + '.' + year,           /* 21.9.2026  */
+      MONTH_NAMES[(+month) - 1]                       /* September  */
+    ].join(' ');
   }
 
   /* Everything one expense can be found by: the note you wrote on it, the
-     category it sits under, its currency, and the digits of the amount — so
-     "45" finds both 45.00 and 450.00, which is what you want when you only
-     half-remember the number. */
+     category it sits under, its currency, the digits of the amount — so "45"
+     finds both 45.00 and 450.00, which is what you want when you only
+     half-remember the number — and the day it is on, in whichever way you
+     write a date. */
   function searchText(tx) {
     var category = categoryById(tx.category);
     return foldText([
       tx.comment,
       category ? category.label : tx.category,
       tx.currency,
-      tx.amount.toFixed(2)
+      tx.amount.toFixed(2),
+      dateSpellings(tx.date)
     ].join(' '));
   }
 

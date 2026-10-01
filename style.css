@@ -1065,6 +1065,12 @@ a.user-chip:hover { border-color: var(--brand-300); background: var(--brand-050)
 
 /* month by month */
 
+/* The dashboard runs in three bands — the tiles, this chart, then the pair of
+   cards — and they all leave the same gap. Without this the chart sat flush
+   against the two below it, as if it were part of them. Hidden it leaves no
+   gap at all, since .hidden takes the box out of the flow. */
+.trend { margin-bottom: 1.5rem; }
+
 /* The bars share one height, set here once: the average line is placed as a
    fraction of it, and a percentage would otherwise measure itself against the
    plot plus the labels underneath and land too low. */
