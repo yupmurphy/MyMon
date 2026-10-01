@@ -445,6 +445,7 @@
       '</span>' +
       '<span class="tx__amount">' + ui.escapeHtml(written) + '</span>' +
       '<span class="tx__tools">' +
+        copyTool(tx) +
         '<button class="tx__tool" type="button" data-edit="' + ui.escapeHtml(tx.id) + '"' +
           ' aria-label="Edit ' + ui.escapeHtml(category.label + ' ' + written) + '">' +
           '<svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"' +
@@ -462,6 +463,51 @@
   }
 
   /* ---------- add expense ---------- */
+
+  /* The only way an expense of yours reaches a group. Never automatic, never a
+     move: it writes a second row over there and leaves this one alone. The
+     button appears once there is a group to copy into, and lights up when this
+     expense already has a copy somewhere — js/groupboard.js handles the click
+     and offers the groups it is not in yet. */
+  function copyTool(tx) {
+    if (!NS.groups || !NS.groups.isLoaded() || !NS.groups.all().length) return '';
+
+    var already = NS.groups.copiesOf(tx.id).length;
+
+    return '<button class="tx__tool' + (already ? ' is-on' : '') + '" type="button"' +
+      ' data-copy="' + ui.escapeHtml(tx.id) + '" aria-label="' +
+      (already ? 'Already copied into ' + already + (already === 1 ? ' group' : ' groups') +
+                 '. Copy into another one.'
+               : 'Copy into a group') + '">' +
+      '<svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"' +
+      ' stroke-linecap="round" stroke-linejoin="round" aria-hidden="true">' +
+      '<rect x="9" y="9" width="11" height="11" rx="2.5"/>' +
+      '<path d="M5 15H4.5A1.5 1.5 0 0 1 3 13.5V5.5A2.5 2.5 0 0 1 5.5 3h8A1.5 1.5 0 0 1 15 4.5V5"/>' +
+      '</svg></button>';
+  }
+
+  /* "Also copy into a group", under the comment box. It is rebuilt and set
+     back to nobody every time the dialog opens: putting something in front of
+     other people is a decision taken each time, never one left switched on
+     from last week. */
+  function fillShare() {
+    var box = byId('add-share');
+    var select = byId('field-share');
+    if (!box || !select) return;
+
+    var mine = (NS.groups && NS.groups.isLoaded()) ? NS.groups.all() : [];
+
+    /* Not offered while editing: a copy is made from an expense, once, and
+       the copy it already made is not what this dialog is about. */
+    box.classList.toggle('hidden', !mine.length || !!editing);
+
+    select.innerHTML = '<option value="">Keep it to myself</option>' +
+      mine.map(function (group) {
+        return '<option value="' + ui.escapeHtml(group.id) + '">' +
+          ui.escapeHtml(group.name) + '</option>';
+      }).join('');
+    select.value = '';
+  }
 
   function buildCategoryPicker() {
     dom.catGrid.innerHTML = data.categoriesForPicker().map(function (cat) {
@@ -539,6 +585,7 @@
 
     dom.fieldDate.min = data.oldestDate();
 
+    fillShare();
     setSaving(false);
 
     if (typeof dom.dialog.showModal === 'function') dom.dialog.showModal();
@@ -584,6 +631,11 @@
     };
 
     var changing = editing;
+
+    /* Read before the dialog closes, and only honoured on a new expense. */
+    var shareSelect = byId('field-share');
+    var shareWith = (!changing && shareSelect) ? shareSelect.value : '';
+
     var write = changing ? data.update(changing, input) : data.add(input);
 
     write.then(function (result) {
@@ -607,9 +659,28 @@
       ui.toast(changing
         ? 'Updated to ' + written + ' in ' + label + '.'
         : 'Added ' + written + ' to ' + label + '.');
+
+      if (shareWith) shareCopy(shareWith, result.tx);
     }).catch(function (error) {
       setSaving(false);
       fail(changing ? 'Could not save that change.' : 'Could not save that expense.', error);
+    });
+  }
+
+  /* The copy is written after the expense itself is safely in, and it fails on
+     its own terms: if the group write is refused, the expense is still in your
+     list, which is the half that matters. Saying so beats a silent half-done
+     action. */
+  function shareCopy(groupId, tx) {
+    if (!NS.groups) return;
+
+    NS.groups.copy(groupId, tx).then(function () {
+      render();
+      if (NS.groupBoard) NS.groupBoard.refresh();
+      var group = NS.groups.find(groupId);
+      ui.toast('Copied into ' + (group ? group.name : 'the group') + ' as well.');
+    }).catch(function (error) {
+      fail('Saved to your list, but the copy into the group did not go through.', error);
     });
   }
 
@@ -762,6 +833,21 @@
     render();
   }
 
+  /* Fetched alongside the expenses, so the copy buttons and the count on the
+     Groups tab are right on the first paint rather than appearing a moment
+     later. A refusal here is not fatal: a database that has not had the groups
+     migration run still gets a working personal dashboard, with an empty tab
+     beside it. */
+  function loadGroups() {
+    if (!NS.groups) return Promise.resolve(false);
+    return NS.groups.load().catch(function (error) {
+      if (window.console) {
+        window.console.warn('Groups are not available: ' + (error && error.message));
+      }
+      return false;
+    });
+  }
+
   function init() {
     dom = {
       greeting: byId('greeting'),
@@ -820,12 +906,13 @@
            hands back — reading it off the latter greeted everyone as
            'undefined'. */
         dom.greeting.textContent = greeting() + ', ' + session.get().name + '.';
-        return data.load();
+        return Promise.all([data.load(), loadGroups()]);
       })
       .then(function (loaded) {
         if (!loaded) return;
         document.body.classList.remove('booting');
         render();
+        if (NS.groupBoard) NS.groupBoard.start();
         offerLegacyImport();
       })
       .catch(function (error) {
@@ -833,6 +920,10 @@
         fail('Could not load your expenses.', error);
       });
   }
+
+  /* js/groupboard.js asks for a repaint after it copies something across, so
+     the little mark on the expense appears straight away. */
+  NS.dashboard = { refresh: render };
 
   if (document.readyState === 'loading') {
     document.addEventListener('DOMContentLoaded', init);

@@ -1410,6 +1410,421 @@ html[data-session="out"] [data-when="signed-in"] { display: none !important; }
   .tx__tool { opacity: 1; }
 }
 
+/* ---------- 6b. Groups ---------- */
+
+/* The two halves of the dashboard. An underline rather than a pill row: these
+   are two pages of one thing, not two settings of one control — the segmented
+   .seg-row look is used elsewhere for exactly that, and reusing it here would
+   say the wrong thing. */
+.tabs {
+  display: flex;
+  gap: .15rem;
+  margin: 0 0 1.6rem;
+  border-bottom: 1px solid var(--line);
+}
+
+.tab {
+  position: relative;
+  display: inline-flex;
+  align-items: center;
+  gap: .45rem;
+  padding: .55rem .85rem .7rem;
+  border: 0;
+  background: none;
+  font: inherit;
+  font-weight: 800;
+  font-size: .98rem;
+  color: var(--ink-500);
+  border-radius: var(--r-xs) var(--r-xs) 0 0;
+  cursor: pointer;
+  transition: color .15s ease;
+}
+.tab:hover { color: var(--ink-900); }
+.tab.is-on { color: var(--brand-700); }
+
+/* The marker sits on the shared line, so the on tab reads as joined to the
+   panel below it rather than merely coloured. */
+.tab::after {
+  content: '';
+  position: absolute;
+  left: .5rem; right: .5rem; bottom: -1px;
+  height: 2px;
+  border-radius: 2px;
+  background: transparent;
+}
+.tab.is-on::after { background: var(--brand-600); }
+.tab:focus-visible { outline: none; box-shadow: var(--ring); }
+
+.tab__badge {
+  min-width: 19px;
+  height: 19px;
+  padding: 0 5px;
+  display: inline-grid;
+  place-items: center;
+  border-radius: var(--r-pill);
+  background: var(--brand-600);
+  color: #fff;
+  font-size: .72rem;
+  font-weight: 800;
+  font-variant-numeric: tabular-nums;
+}
+
+.groups-head {
+  display: flex;
+  align-items: flex-start;
+  justify-content: space-between;
+  gap: 1rem;
+  margin-bottom: 1.25rem;
+}
+.groups-head__title { font-size: 1.3rem; margin: 0; }
+.groups-head__note {
+  margin: .3rem 0 0;
+  max-width: 46ch;
+  font-size: .9rem;
+  color: var(--ink-500);
+}
+
+.muted-note { color: var(--ink-500); font-size: .92rem; }
+
+/* --- an invitation waiting on an answer --- */
+.invite {
+  display: flex;
+  align-items: center;
+  justify-content: space-between;
+  gap: 1rem;
+  flex-wrap: wrap;
+  margin-bottom: 1rem;
+  box-shadow: inset 0 0 0 2px var(--brand-300), var(--shadow-sm);
+}
+.invite__title { font-size: 1.05rem; margin: 0; }
+.invite__note { margin: .25rem 0 0; font-size: .88rem; color: var(--ink-500); }
+.invite__tools { display: flex; gap: .5rem; flex: none; }
+
+/* --- the list of groups --- */
+.group-list { list-style: none; margin: 0; padding: 0; display: grid; gap: .75rem; }
+
+.group-card {
+  width: 100%;
+  display: grid;
+  grid-template-columns: minmax(0, 1fr) auto;
+  gap: .2rem 1rem;
+  padding: 1.1rem 1.25rem;
+  text-align: left;
+  background: var(--surface);
+  border: 1px solid var(--line);
+  border-radius: var(--r-md);
+  box-shadow: var(--shadow-xs);
+  font: inherit;
+  cursor: pointer;
+  transition: border-color .15s ease, box-shadow .15s ease, transform .15s ease;
+}
+.group-card:hover {
+  border-color: var(--brand-300);
+  box-shadow: var(--shadow-sm);
+  transform: translateY(-1px);
+}
+.group-card:focus-visible { outline: none; box-shadow: var(--ring); }
+
+.group-card__name {
+  grid-column: 1;
+  font-weight: 800;
+  font-size: 1.05rem;
+  color: var(--ink-900);
+  overflow: hidden;
+  text-overflow: ellipsis;
+  white-space: nowrap;
+}
+.group-card__meta { grid-column: 1; font-size: .85rem; color: var(--ink-500); }
+.group-card__sum {
+  grid-column: 2;
+  grid-row: 1 / span 2;
+  align-self: center;
+  font-weight: 800;
+  font-size: 1.05rem;
+  color: var(--ink-900);
+  font-variant-numeric: tabular-nums;
+  text-align: right;
+  white-space: nowrap;
+}
+.group-card__and { color: var(--ink-300); font-weight: 800; margin: 0 .3rem; }
+
+.back-link {
+  display: inline-flex;
+  align-items: center;
+  gap: .3rem;
+  margin-bottom: 1rem;
+  padding: .35rem .6rem .35rem .35rem;
+  border: 0;
+  background: none;
+  border-radius: var(--r-pill);
+  font: inherit;
+  font-weight: 700;
+  font-size: .9rem;
+  color: var(--ink-500);
+  cursor: pointer;
+}
+.back-link:hover { background: var(--surface-sunken); color: var(--ink-900); }
+.back-link:focus-visible { outline: none; box-shadow: var(--ring); }
+.back-link svg { width: 16px; height: 16px; }
+
+/* --- one group's heading --- */
+.group-head { margin-bottom: 1.5rem; }
+.group-head__row {
+  display: flex;
+  align-items: flex-start;
+  justify-content: space-between;
+  gap: 1rem;
+  flex-wrap: wrap;
+}
+.group-head__name { font-size: 1.3rem; margin: 0; }
+.group-head__tools { display: flex; gap: .4rem; flex: none; }
+.group-head__sum {
+  margin: .6rem 0 0;
+  font-size: 1.9rem;
+  font-weight: 800;
+  letter-spacing: -.02em;
+  color: var(--ink-900);
+  font-variant-numeric: tabular-nums;
+}
+.group-head__note { margin: .15rem 0 0; font-size: .88rem; color: var(--ink-500); }
+
+/* --- who is in it --- */
+.people {
+  list-style: none;
+  margin: 1.1rem 0 0;
+  padding: 0;
+  display: flex;
+  flex-wrap: wrap;
+  gap: .4rem;
+}
+
+.person {
+  display: inline-flex;
+  align-items: center;
+  gap: .35rem;
+  padding: .3rem .4rem .3rem .7rem;
+  background: var(--surface-sunken);
+  border-radius: var(--r-pill);
+  font-size: .85rem;
+  font-weight: 700;
+  color: var(--ink-700);
+}
+/* Nobody yet — a dashed edge says "not settled" without needing a second
+   colour that would have to mean something on its own. */
+.person--waiting {
+  background: none;
+  box-shadow: inset 0 0 0 1px var(--line-strong);
+  color: var(--ink-500);
+}
+.person__name { padding-right: .3rem; }
+.person__tag {
+  padding: .1rem .45rem;
+  border-radius: var(--r-pill);
+  background: var(--surface);
+  font-size: .72rem;
+  font-weight: 800;
+  color: var(--ink-400);
+  text-transform: lowercase;
+}
+.person--waiting .person__tag { background: var(--surface-sunken); }
+
+.person__drop {
+  width: 20px; height: 20px;
+  display: grid;
+  place-items: center;
+  border: 0;
+  background: none;
+  border-radius: 50%;
+  color: var(--ink-300);
+  cursor: pointer;
+}
+.person__drop:hover { background: #fdecec; color: var(--danger); }
+.person__drop:focus-visible { outline: none; box-shadow: var(--ring); }
+.person__drop svg { width: 11px; height: 11px; }
+
+.invite-row { margin-top: 1.2rem; }
+.invite-row__label {
+  display: block;
+  margin-bottom: .4rem;
+  font-size: .82rem;
+  font-weight: 800;
+  letter-spacing: .02em;
+  text-transform: uppercase;
+  color: var(--ink-500);
+}
+.invite-row__fields { display: flex; gap: .5rem; }
+.invite-row__fields .input { flex: 1; min-width: 0; }
+.invite-row__fields .btn { flex: none; }
+
+.field__hint {
+  margin: .4rem 0 0;
+  font-size: .82rem;
+  line-height: 1.5;
+  color: var(--ink-500);
+}
+
+/* --- who put in what ---
+   One bar per person, thin, in one hue. Not a categorical palette: these are
+   amounts of the same thing, so the only difference that needs showing is
+   which one is yours — and that is said with the name as well as the bar. */
+.shares { list-style: none; margin: 0; padding: 0; display: grid; gap: .7rem; }
+
+.share {
+  display: grid;
+  grid-template-columns: minmax(70px, auto) minmax(0, 1fr) auto;
+  align-items: center;
+  gap: .75rem;
+}
+.share__who {
+  font-size: .9rem;
+  font-weight: 700;
+  color: var(--ink-700);
+  overflow: hidden;
+  text-overflow: ellipsis;
+  white-space: nowrap;
+}
+.share__track {
+  height: 8px;
+  border-radius: var(--r-pill);
+  background: var(--surface-sunken);
+  overflow: hidden;
+}
+.share__fill {
+  display: block;
+  width: var(--w);
+  height: 100%;
+  border-radius: var(--r-pill);
+  background: var(--brand-300);
+}
+.share__fill--me { background: var(--brand-600); }
+.share__sum {
+  font-size: .9rem;
+  font-weight: 800;
+  color: var(--ink-900);
+  font-variant-numeric: tabular-nums;
+  white-space: nowrap;
+}
+
+/* --- an entry in a group --- */
+
+/* Who wrote it, beside the category. The row is the same one the personal
+   list uses; this is the one thing a shared ledger has to say that a private
+   one does not. */
+.tx__who {
+  margin-left: .5rem;
+  font-size: .78rem;
+  font-weight: 700;
+  color: var(--ink-400);
+}
+
+/* In a shared ledger the rows do not all carry the same buttons: your own have
+   edit and delete on them and somebody else's do not. Left to itself the grid
+   gives the tools exactly as much room as they need, which lands every row's
+   amount at a different place down the column. Reserving the full width of
+   three buttons, filled from the right, puts the figures back on one line —
+   and a column of money that does not line up is barely a column. */
+.tx--group .tx__tools {
+  min-width: 96px;
+  justify-content: flex-end;
+}
+
+/* A tool that is carrying information — a comment count, or the mark that
+   this expense already has a copy in a group — cannot wait for a hover. */
+.tx__tool.is-on { opacity: 1; color: var(--brand-600); }
+.tx__tool-count {
+  position: absolute;
+  top: 1px; right: 0;
+  min-width: 14px;
+  padding: 0 3px;
+  border-radius: var(--r-pill);
+  background: var(--brand-600);
+  color: #fff;
+  font-size: .62rem;
+  font-weight: 800;
+  line-height: 14px;
+}
+.tx__tool { position: relative; }
+
+/* --- comments --- */
+.thread {
+  grid-column: 1 / -1;
+  margin: .6rem 0 .2rem;
+  padding: .85rem 1rem;
+  background: var(--surface-sunken);
+  border-radius: var(--r-sm);
+}
+.thread__list { list-style: none; margin: 0 0 .7rem; padding: 0; display: grid; gap: .5rem; }
+.thread__empty { margin: 0 0 .7rem; font-size: .85rem; color: var(--ink-400); }
+
+.note {
+  display: grid;
+  grid-template-columns: auto minmax(0, 1fr) auto;
+  align-items: baseline;
+  gap: .5rem;
+  font-size: .88rem;
+}
+.note__who { font-weight: 800; color: var(--ink-700); }
+.note__body { color: var(--ink-700); overflow-wrap: anywhere; }
+.note__drop {
+  width: 18px; height: 18px;
+  display: grid;
+  place-items: center;
+  align-self: center;
+  border: 0;
+  background: none;
+  border-radius: 50%;
+  color: var(--ink-300);
+  cursor: pointer;
+}
+.note__drop:hover { background: #fdecec; color: var(--danger); }
+.note__drop:focus-visible { outline: none; box-shadow: var(--ring); }
+.note__drop svg { width: 10px; height: 10px; }
+
+.thread__write { display: flex; gap: .5rem; }
+.thread__write .input { flex: 1; min-width: 0; background: var(--surface); }
+.thread__write .btn { flex: none; }
+
+.btn--sm { padding: .45rem .9rem; font-size: .85rem; }
+
+/* --- picking a group to copy into --- */
+.pick { display: grid; gap: .5rem; }
+
+.pick__option { display: block; cursor: pointer; }
+.pick__option input {
+  position: absolute;
+  width: 1px; height: 1px;
+  opacity: 0;
+  pointer-events: none;
+}
+.pick__option > span {
+  display: block;
+  padding: .7rem .9rem;
+  background: var(--surface);
+  border: 1px solid var(--line-strong);
+  border-radius: var(--r-sm);
+  transition: border-color .15s ease, background-color .15s ease;
+}
+.pick__option > span b { display: block; font-weight: 800; color: var(--ink-900); }
+.pick__option > span i {
+  display: block;
+  margin-top: .1rem;
+  font-style: normal;
+  font-size: .82rem;
+  color: var(--ink-500);
+}
+.pick__option:hover > span { border-color: var(--brand-300); }
+.pick__option input:checked + span {
+  border-color: var(--brand-600);
+  background: var(--brand-050);
+}
+.pick__option input:focus-visible + span { box-shadow: var(--ring); }
+
+/* Already in that group. Left readable rather than hidden, so the answer to
+   "why can I not pick it" is on the screen instead of being guessed at. */
+.pick__option--done { cursor: default; }
+.pick__option--done > span { background: var(--surface-sunken); opacity: .65; }
+.pick__option--done:hover > span { border-color: var(--line-strong); }
+
 /* ---------- 7. Charts ---------- */
 .share-bar {
   display: flex;
@@ -1674,6 +2089,40 @@ dialog.modal[open] { animation: pop .18s cubic-bezier(.22, .61, .36, 1); }
     max-height: min(28rem, 55vh);
     overscroll-behavior-y: auto;
   }
+
+  /* Groups: every row that was a heading beside its buttons becomes the
+     heading above them. Nothing here shrinks text to fit — it stacks. */
+  .tab { padding: .5rem .6rem .65rem; font-size: .92rem; }
+
+  .groups-head,
+  .group-head__row,
+  .invite { flex-direction: column; align-items: stretch; }
+  .groups-head .btn { justify-content: center; }
+
+  /* A grid rather than two flexible buttons: flex sizes them from their own
+     padding, and a quiet button and a solid one do not carry the same, so the
+     pair came out visibly lopsided. Two equal columns cannot. */
+  .invite__tools,
+  .group-head__tools {
+    display: grid;
+    grid-template-columns: 1fr 1fr;
+    gap: .5rem;
+  }
+  .invite__tools .btn,
+  .group-head__tools .btn { justify-content: center; }
+
+  .group-card { padding: .95rem 1rem; }
+  .group-card__sum { font-size: .95rem; }
+  .group-head__sum { font-size: 1.55rem; }
+
+  /* The name and the amount keep their own lines; only the bar gives way. */
+  .share { grid-template-columns: minmax(0, 1fr) auto; row-gap: .25rem; }
+  .share__track { grid-column: 1 / -1; grid-row: 2; }
+
+  .thread { padding: .75rem .8rem; }
+  .thread__write { flex-wrap: wrap; }
+  .thread__write .input { flex: 1 1 100%; }
+  .thread__write .btn { width: 100%; justify-content: center; }
 }
 
 /* ---------- 10. Signing in and waiting ---------- */

@@ -7,6 +7,9 @@ Thumbs.db
 desktop.ini
 .DS_Store
 
-# Temporary test harness: stands in for the account and the database so the
-# pages can be checked without signing in. Never part of the site.
+# Temporary test harness: __stub.js stands in for the account and the database
+# so the pages can be driven without signing in to a real account, and
+# __test.html is a copy of a page with that stub spliced into it. Both are
+# thrown away after use and are never part of the site.
 __stub.js
+__test.html

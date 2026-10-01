@@ -43,6 +43,20 @@
     <div class="container">
       <p class="dash__greeting" id="greeting"></p>
 
+      <!-- The page had grown past what one screen can hold, and the two halves
+           answer different questions anyway: what did I spend, and what did we
+           spend. Which one you are on lives in the address (#groups), so a
+           reload, a back button and a sent link all land where you were. -->
+      <div class="tabs" role="tablist" aria-label="Your money">
+        <button class="tab is-on" type="button" role="tab" id="tab-personal"
+                data-tab="personal" aria-selected="true" aria-controls="panel-personal">Personal</button>
+        <button class="tab" type="button" role="tab" id="tab-groups"
+                data-tab="groups" aria-selected="false" aria-controls="panel-groups">Groups<span
+                class="tab__badge hidden" id="tab-groups-badge" aria-hidden="true">0</span></button>
+      </div>
+
+      <section class="panel" id="panel-personal" role="tabpanel" aria-labelledby="tab-personal">
+
       <div class="summary">
         <div>
           <p class="summary__label" id="summary-label">This month you have spent</p>
@@ -192,6 +206,14 @@
           </div>
         </section>
       </div>
+
+      </section>
+
+      <!-- Groups. Painted whole by js/groupboard.js — the list of groups when
+           none is open, one group's ledger when one is. -->
+      <section class="panel hidden" id="panel-groups" role="tabpanel" aria-labelledby="tab-groups">
+        <div id="groups-view"></div>
+      </section>
     </div>
   </main>
 
@@ -205,7 +227,7 @@
         <a href="index.html?stay=1" data-page="home">Home</a>
         <a href="about.html" data-page="about">About</a>
       </nav>
-      <p class="site-footer__meta">&copy; <span data-year>2026</span> MyMon &mdash; v1.1.19</p>
+      <p class="site-footer__meta">&copy; <span data-year>2026</span> MyMon &mdash; v1.1.20</p>
     </div>
   </footer>
 
@@ -256,11 +278,142 @@
                     placeholder="What was it for?"></textarea>
           <p class="field__error"></p>
         </div>
+
+        <!-- Shown only once there is a group to choose. It starts on "nobody",
+             every time: nothing of yours reaches anyone unless you say so here
+             or press copy on the expense afterwards. -->
+        <div class="field hidden" data-field="share" id="add-share">
+          <label for="field-share">Also copy into a group</label>
+          <select class="input" id="field-share">
+            <option value="">Keep it to myself</option>
+          </select>
+          <p class="field__hint">A copy, not a move &mdash; the expense stays in your own list either way.</p>
+        </div>
       </div>
 
       <div class="modal__foot">
         <button class="btn btn--quiet" type="button" data-close-dialog>Cancel</button>
         <button class="btn btn--primary" type="submit" id="add-submit">Add expense</button>
+      </div>
+    </form>
+  </dialog>
+
+  <!-- Naming a group, and renaming one. The same box both times. -->
+  <dialog class="modal" id="group-dialog" aria-labelledby="group-dialog-title">
+    <form id="group-form" method="dialog" novalidate>
+      <div class="modal__head">
+        <div>
+          <h2 id="group-dialog-title">New group</h2>
+          <p id="group-dialog-subtitle">You can invite people once it exists.</p>
+        </div>
+        <button class="modal__close" type="button" data-dismiss aria-label="Close">
+          <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.2"
+               stroke-linecap="round" aria-hidden="true"><path d="M6 6l12 12M18 6L6 18"/></svg>
+        </button>
+      </div>
+
+      <div class="modal__body">
+        <div class="field" data-field="group-name">
+          <label for="field-group-name">Name</label>
+          <input class="input" id="field-group-name" maxlength="40" autocomplete="off"
+                 placeholder="Trip to the mountains" />
+          <p class="field__error"></p>
+        </div>
+      </div>
+
+      <div class="modal__foot">
+        <button class="btn btn--quiet" type="button" data-dismiss>Cancel</button>
+        <button class="btn btn--primary" type="submit" id="group-submit">Make the group</button>
+      </div>
+    </form>
+  </dialog>
+
+  <!-- Writing something straight into a group, and correcting it afterwards.
+       Same fields as a personal expense, and the same validation behind them —
+       a group entry is the same kind of fact, written somewhere else. -->
+  <dialog class="modal" id="entry-dialog" aria-labelledby="entry-dialog-title">
+    <form id="entry-form" method="dialog" novalidate>
+      <div class="modal__head">
+        <div>
+          <h2 id="entry-dialog-title">Add to the group</h2>
+          <p id="entry-dialog-subtitle">Everyone in the group will see this.</p>
+        </div>
+        <button class="modal__close" type="button" data-dismiss aria-label="Close">
+          <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.2"
+               stroke-linecap="round" aria-hidden="true"><path d="M6 6l12 12M18 6L6 18"/></svg>
+        </button>
+      </div>
+
+      <div class="modal__body">
+        <div class="field" data-field="amount">
+          <label for="entry-amount">Amount</label>
+          <div class="input-money">
+            <span aria-hidden="true" data-currency-symbol>$</span>
+            <input id="entry-amount" type="number" step="0.01" min="0.01" inputmode="decimal"
+                   placeholder="0.00" />
+          </div>
+          <p class="field__error"></p>
+        </div>
+
+        <div class="field" data-field="category">
+          <p class="field__label" id="entry-category-label">Category</p>
+          <fieldset class="cat-grid" id="entry-category-grid" aria-labelledby="entry-category-label"></fieldset>
+          <p class="field__error"></p>
+        </div>
+
+        <div class="field" data-field="date">
+          <label for="entry-date">Date</label>
+          <input class="input" id="entry-date" type="date" />
+          <p class="field__error"></p>
+        </div>
+
+        <div class="field" data-field="comment">
+          <div class="field__row">
+            <label for="entry-comment">Comment <span class="field__optional">&mdash; optional</span></label>
+            <span class="field__count" id="entry-comment-count" aria-live="polite">0 / 140</span>
+          </div>
+          <textarea class="textarea" id="entry-comment" maxlength="140"
+                    placeholder="What was it for?"></textarea>
+          <p class="field__error"></p>
+        </div>
+      </div>
+
+      <div class="modal__foot">
+        <button class="btn btn--quiet" type="button" data-dismiss>Cancel</button>
+        <button class="btn btn--primary" type="submit" id="entry-submit">Add it</button>
+      </div>
+    </form>
+  </dialog>
+
+  <!-- Copying an expense you already have into a group. Which group is always
+       asked, even when there is only one of them. -->
+  <dialog class="modal" id="copy-dialog" aria-labelledby="copy-dialog-title">
+    <form id="copy-form" method="dialog" novalidate>
+      <div class="modal__head">
+        <div>
+          <h2 id="copy-dialog-title">Copy into a group</h2>
+          <p id="copy-dialog-subtitle"></p>
+        </div>
+        <button class="modal__close" type="button" data-dismiss aria-label="Close">
+          <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.2"
+               stroke-linecap="round" aria-hidden="true"><path d="M6 6l12 12M18 6L6 18"/></svg>
+        </button>
+      </div>
+
+      <div class="modal__body">
+        <div class="field" data-field="group">
+          <p class="field__label" id="copy-pick-label">Which group</p>
+          <div class="pick" id="copy-pick" role="radiogroup" aria-labelledby="copy-pick-label"></div>
+          <p class="field__error"></p>
+        </div>
+        <p class="field__hint">The expense stays in your own list. What goes into the
+          group is a copy, and from then on the two are separate &mdash; editing one
+          does not touch the other.</p>
+      </div>
+
+      <div class="modal__foot">
+        <button class="btn btn--quiet" type="button" data-dismiss>Cancel</button>
+        <button class="btn btn--primary" type="submit" id="copy-submit">Copy it</button>
       </div>
     </form>
   </dialog>
@@ -272,6 +425,8 @@
   <script src="js/session.js"></script>
   <script src="js/data.js"></script>
   <script src="js/ui.js"></script>
+  <script src="js/groups.js"></script>
   <script src="js/dashboard.js"></script>
+  <script src="js/groupboard.js"></script>
 </body>
 </html>
