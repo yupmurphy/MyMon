@@ -92,6 +92,21 @@
         </div>
       </div>
 
+      <!-- The zoom-out view. The cards below are about one month; this one is
+           about whether that month is a lot for you, which you cannot tell
+           from the month alone. Hidden until there are two months to compare. -->
+      <section class="card trend hidden" id="trend-card" aria-labelledby="trend-title">
+        <div class="card__head">
+          <h2 class="card__title" id="trend-title">Month by month</h2>
+          <span class="card__hint" id="trend-hint"></span>
+        </div>
+
+        <div class="seg-row hidden" id="trend-currency" role="group"
+             aria-label="Which currency this chart is about"></div>
+
+        <div class="trend__plot" id="trend-plot"></div>
+      </section>
+
       <div class="dash__grid">
         <section class="card" aria-labelledby="breakdown-title">
           <div class="card__head">
@@ -188,7 +203,7 @@
         <img src="MyM.png" class="logo" alt="" />
         <p>Your money habits. Under &ldquo;parental&rdquo; supervision. <b>Again.</b></p>
       </div>
-      <p class="site-footer__meta">&copy; <span data-year>2026</span> MyMon &mdash; v1.1.13</p>
+      <p class="site-footer__meta">&copy; <span data-year>2026</span> MyMon &mdash; v1.1.14</p>
       <p>Saved to your account.</p>
     </div>
   </footer>

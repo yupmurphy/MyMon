@@ -569,6 +569,33 @@ window.MyMon = window.MyMon || {};
     }).sort(function (a, b) { return b.total - a.total; });
   }
 
+  /* ---------- a run of months ---------------------------------------------
+
+     Stepping month by month answers "what did I spend", one month at a time.
+     It never answers "is this a lot for me", because that needs the months on
+     either side of it. This hands over the whole run at once. */
+
+  /* Oldest first, ending at `endMonth`. Months from before the first expense
+     are left out: a chart has no reason to show the years you had not started
+     yet. Each month carries its own per-currency totals, never a sum across
+     them. */
+  function recentMonths(endMonth, count) {
+    var first = earliestMonth();
+    var months = [];
+
+    for (var i = count - 1; i >= 0; i--) {
+      var month = shiftMonth(endMonth, -i);
+      if (month >= first) months.push(month);
+    }
+
+    return months.map(function (month) {
+      var totals = totalsOf(forMonth(month));
+      var byCurrency = {};
+      totals.forEach(function (row) { byCurrency[row.currency] = row.total; });
+      return { month: month, totals: totals, byCurrency: byCurrency };
+    });
+  }
+
   function earliestMonth() {
     if (!cache.length) return currentMonth();
     var oldest = cache[0].date;
@@ -692,6 +719,7 @@ window.MyMon = window.MyMon || {};
     statsFor: statsFor,
     search: search,
     totalsOf: totalsOf,
+    recentMonths: recentMonths,
     seedSample: seedSample,
     legacyExpenses: legacyExpenses,
     importLegacy: importLegacy,

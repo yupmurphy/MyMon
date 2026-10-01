@@ -72,6 +72,7 @@
     renderSummary(stats, previous);
     renderMonthNav();
     renderStats(stats, part);
+    renderTrend();
     renderBreakdown(stats, part);
     renderSearchBox();
 
@@ -168,6 +169,131 @@
         ui.escapeHtml(part.currency) + '" aria-pressed="' + (on ? 'true' : 'false') + '">' +
         ui.escapeHtml(part.currency) + '</button>';
     }).join('');
+  }
+
+  /* ---------- month by month ----------
+
+     One series, so there is no legend to read: the card title names it. The
+     month you are looking at is marked twice over — the darkest green in the
+     scale and a filled label — because the step below it sits too close to
+     the others to be told apart by anyone, let alone by someone colour-blind.
+     Every bar carries its month and its amount in its own label, so none of
+     this depends on reading a colour at all. */
+
+  /* Twelve bars need room for twelve labels underneath. A phone has room for
+     six, and six months still answer the question. */
+  function monthsOnChart() {
+    return window.matchMedia && window.matchMedia('(max-width: 680px)').matches ? 6 : 12;
+  }
+
+  /* The run ends at this month — or earlier, by just enough to keep the month
+     being viewed on the chart, so stepping back never walks off it. */
+  function trendWindow() {
+    var count = monthsOnChart();
+    var end = data.currentMonth();
+    var reach = data.shiftMonth(viewMonth, count - 1);
+    return data.recentMonths(reach < end ? reach : end, count);
+  }
+
+  /* Which currency the chart is about. Its own pick, not the one the month
+     cards use: this window is wider than any single month. */
+  var trendCurrency = null;
+
+  function renderTrend() {
+    var months = trendWindow();
+    var live = months.filter(function (month) { return month.totals.length > 0; });
+
+    /* One month is not a trend, and a chart of one bar says nothing. */
+    if (live.length < 2) {
+      dom.trendCard.classList.add('hidden');
+      return;
+    }
+    dom.trendCard.classList.remove('hidden');
+
+    /* Every currency that turns up anywhere in the window, most spent first. */
+    var sums = {};
+    var order = [];
+    months.forEach(function (month) {
+      month.totals.forEach(function (row) {
+        if (!(row.currency in sums)) { sums[row.currency] = 0; order.push(row.currency); }
+        sums[row.currency] += row.total;
+      });
+    });
+    order.sort(function (a, b) { return sums[b] - sums[a]; });
+    if (order.indexOf(trendCurrency) === -1) trendCurrency = order[0];
+
+    var many = order.length > 1;
+    dom.trendCurrency.classList.toggle('hidden', !many);
+    dom.trendCurrency.innerHTML = many ? order.map(function (currency) {
+      return '<button class="seg" type="button" data-trend-currency="' +
+        ui.escapeHtml(currency) + '" aria-pressed="' +
+        (currency === trendCurrency ? 'true' : 'false') + '">' +
+        ui.escapeHtml(currency) + '</button>';
+    }).join('') : '';
+
+    /* "May – Oct 2026" rather than the year twice over; the year is only
+       written on both ends when they really are two different years. */
+    var first = months[0].month;
+    var last = months[months.length - 1].month;
+    dom.trendHint.textContent = first.slice(0, 4) === last.slice(0, 4)
+      ? data.monthLabel(first).slice(0, 3) + ' – ' + data.monthLabel(last).slice(0, 3) +
+        ' ' + last.slice(0, 4)
+      : data.monthLabel(first).slice(0, 3) + ' ' + first.slice(0, 4) + ' – ' +
+        data.monthLabel(last).slice(0, 3) + ' ' + last.slice(0, 4);
+
+    /* A narrow chart has no room under a bar for "May '26", and no need: six
+       months cannot hold the same month name twice, and the line above spells
+       the range out in full either way. */
+    var years = months.length > 6;
+
+    var values = months.map(function (month) {
+      return month.byCurrency[trendCurrency] || 0;
+    });
+    var tallest = Math.max.apply(null, values);
+
+    /* Averaged over the months that have something in them. A month with no
+       lei in it is almost always a month you spent no lei, not a cheap one,
+       and counting it would drag the line down to nothing. */
+    var spent = values.filter(function (value) { return value > 0; });
+    var average = spent.reduce(function (sum, value) { return sum + value; }, 0) / spent.length;
+
+    dom.trendPlot.innerHTML =
+      '<div class="trend__bars">' +
+        months.map(function (month, i) {
+          return renderBar(month, values[i], tallest,
+            i > 0 ? months[i - 1].month : null, years);
+        }).join('') +
+      '</div>' +
+      '<div class="trend__avg" style="--at: ' +
+        (tallest > 0 ? 1 - average / tallest : 1).toFixed(4) + '">' +
+        '<span class="trend__avg-label">avg ' +
+          ui.escapeHtml(ui.moneyShort(average, trendCurrency)) + '</span>' +
+      '</div>';
+
+    ui.bindTips(dom.trendPlot);
+  }
+
+  function renderBar(month, value, tallest, before, years) {
+    var here = month.month === viewMonth;
+    var label = data.monthLabel(month.month);
+    var written = ui.money(value, trendCurrency);
+
+    /* Just the month, except where the year turns over — and on the first bar,
+       which has no earlier one to have said it. */
+    var tick = label.slice(0, 3);
+    if (years && (!before || before.slice(0, 4) !== month.month.slice(0, 4))) {
+      tick += ' ’' + month.month.slice(2, 4);
+    }
+
+    return '<button class="trend__bar" type="button" data-month="' +
+      ui.escapeHtml(month.month) + '"' + (here ? ' aria-current="true"' : '') +
+      ' style="--h: ' + (tallest > 0 ? (value / tallest) * 100 : 0).toFixed(2) + '"' +
+      ' data-tip="' + ui.escapeHtml(label + ' · ' + written) + '"' +
+      ' aria-label="' + ui.escapeHtml(label + ', ' + written +
+        (here ? ', the month shown above' : ', show this month')) + '">' +
+      '<span class="trend__col"><span class="trend__fill"></span></span>' +
+      '<span class="trend__tick">' + ui.escapeHtml(tick) + '</span>' +
+    '</button>';
   }
 
   function renderBreakdown(stats, part) {
@@ -584,6 +710,31 @@
 
     dom.searchClear.addEventListener('click', clearSearch);
 
+    /* A bar is a way into its month. */
+    dom.trendPlot.addEventListener('click', function (event) {
+      var bar = event.target.closest('[data-month]');
+      if (!bar) return;
+      viewMonth = bar.dataset.month;
+      ui.hideTip();
+      render();
+    });
+
+    dom.trendCurrency.addEventListener('click', function (event) {
+      var button = event.target.closest('[data-trend-currency]');
+      if (!button) return;
+      trendCurrency = button.dataset.trendCurrency;
+      render();
+    });
+
+    /* Crossing the phone/desktop line changes how many months fit, so the
+       chart is drawn again rather than left at the old count. */
+    if (window.matchMedia) {
+      var narrow = window.matchMedia('(max-width: 680px)');
+      var redraw = function () { render(); };
+      if (narrow.addEventListener) narrow.addEventListener('change', redraw);
+      else if (narrow.addListener) narrow.addListener(redraw);
+    }
+
     /* Switching which currency the chart and the tiles are about. */
     dom.currencyPicker.addEventListener('click', function (event) {
       var button = event.target.closest('[data-currency]');
@@ -643,6 +794,10 @@
       breakdown: byId('breakdown'),
       breakdownEmpty: byId('breakdown-empty'),
       breakdownHint: byId('breakdown-hint'),
+      trendCard: byId('trend-card'),
+      trendHint: byId('trend-hint'),
+      trendCurrency: byId('trend-currency'),
+      trendPlot: byId('trend-plot'),
       searchRow: byId('tx-search-row'),
       searchField: byId('tx-search'),
       searchClear: byId('tx-search-clear'),
@@ -676,7 +831,10 @@
         ui.year();
         buildCategoryPicker();
         wire();
-        dom.greeting.textContent = greeting() + ', ' + user.name + '.';
+        /* The name is on the profile, not on the account object require()
+           hands back — reading it off the latter greeted everyone as
+           'undefined'. */
+        dom.greeting.textContent = greeting() + ', ' + session.get().name + '.';
         return data.load();
       })
       .then(function (loaded) {

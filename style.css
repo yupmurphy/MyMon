@@ -1063,6 +1063,114 @@ a.user-chip:hover { border-color: var(--brand-300); background: var(--brand-050)
 
 .stat p { margin: 0; }
 
+/* month by month */
+
+/* The bars share one height, set here once: the average line is placed as a
+   fraction of it, and a percentage would otherwise measure itself against the
+   plot plus the labels underneath and land too low. */
+.trend__plot {
+  position: relative;
+  --plot: 150px;
+}
+
+.trend__bars {
+  position: relative;
+  display: flex;
+  align-items: stretch;
+  gap: 2px;
+}
+
+/* Something for the bars to stand on. Exactly at their base, so it reads as a
+   baseline rather than as one more gridline. */
+.trend__bars::after {
+  content: '';
+  position: absolute;
+  left: 0; right: 0;
+  top: var(--plot);
+  border-top: 1px solid var(--line);
+  pointer-events: none;
+}
+
+/* The button is the whole column so the thing you have to hit is generous;
+   the padding is what keeps the mark inside it thin. */
+.trend__bar {
+  flex: 1;
+  min-width: 0;
+  display: grid;
+  grid-template-rows: var(--plot) auto;
+  gap: .5rem;
+  padding: 0 4px;
+  border: 0;
+  background: none;
+  font: inherit;
+  cursor: pointer;
+  border-radius: var(--r-xs);
+}
+.trend__bar:focus-visible { outline: none; box-shadow: var(--ring); }
+
+.trend__col { position: relative; }
+
+/* Anchored to the baseline and rounded only at the end that carries the
+   value. A month with nothing in it keeps a sliver, so the gap is visible as
+   a gap rather than as a missing bar. */
+.trend__fill {
+  position: absolute;
+  left: 50%;
+  bottom: 0;
+  width: min(100%, 34px);
+  transform: translateX(-50%);
+  height: max(3px, calc(var(--h) * 1%));
+  background: var(--brand-500);
+  border-radius: 4px 4px 0 0;
+  transition: background-color .15s ease;
+}
+.trend__bar:hover .trend__fill { background: var(--brand-600); }
+
+/* The month being shown above. Marked twice — the darkest green in the scale,
+   and a filled label — because the step just below it sits too close to the
+   others for anyone to tell apart, colour-blind or not. */
+.trend__bar[aria-current] .trend__fill { background: var(--brand-700); }
+.trend__bar[aria-current] .trend__tick {
+  background: var(--brand-700);
+  color: #fff;
+}
+
+.trend__tick {
+  justify-self: center;
+  max-width: 100%;
+  padding: .15rem .4rem;
+  border-radius: var(--r-pill);
+  font-size: .7rem;
+  font-weight: 800;
+  color: var(--ink-400);
+  white-space: nowrap;
+  overflow: hidden;
+  text-overflow: clip;
+}
+
+/* What a usual month costs. Without it a tall bar only reads as tall; with it
+   the same bar reads as more than usual, which is the question being asked.
+   Averaged over the months that have something in them. */
+.trend__avg {
+  position: absolute;
+  left: 0; right: 0;
+  top: calc(var(--at) * var(--plot));
+  border-top: 1px dashed var(--ink-300);
+  pointer-events: none;
+}
+
+.trend__avg-label {
+  position: absolute;
+  right: 0;
+  top: -.62rem;
+  padding: 0 .3rem;
+  background: var(--surface);
+  font-size: .7rem;
+  font-weight: 800;
+  color: var(--ink-400);
+  font-variant-numeric: tabular-nums;
+}
+
 /* searching the expenses */
 
 /* Built like .input-money: the frame is the wrapper, so the magnifier and the
@@ -1541,6 +1649,12 @@ dialog.modal[open] { animation: pop .18s cubic-bezier(.22, .61, .36, 1); }
   .tx__body { grid-column: 2; grid-row: 1; }
   .tx__amount { grid-column: 2; grid-row: 2; }
   .tx__tools { grid-column: 3; grid-row: 1 / span 2; }
+
+  /* Six bars instead of twelve — the script does that part. These only make
+     the labels fit the narrower bars. */
+  .trend__plot { --plot: 128px; }
+  .trend__bar { padding: 0 2px; }
+  .trend__tick { font-size: .66rem; padding: .15rem .3rem; }
 
   /* Taller rows and a shorter screen: at the desktop height the box would be
      nearly everything you can see, leaving almost nothing to grab to scroll
