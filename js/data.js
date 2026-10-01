@@ -510,6 +510,65 @@ window.MyMon = window.MyMon || {};
   }
 
   /* Oldest month that holds data. */
+  /* ---------- searching ---------------------------------------------------
+
+     A month at a time answers "what did I spend this month". It cannot answer
+     "how much did I pay for that repair", because you no longer remember which
+     month it was in. So searching deliberately ignores the month being viewed
+     and looks through everything. */
+
+  /* Lower case and without accents, so "mancare" finds "mâncare" and "Benzina"
+     finds "benzină". NFD splits a letter from its accent; the range stripped
+     after it is the accents themselves. */
+  function foldText(value) {
+    var text = String(value == null ? '' : value).toLowerCase();
+    if (text.normalize) text = text.normalize('NFD').replace(/[\u0300-\u036f]/g, '');
+    return text;
+  }
+
+  /* Everything one expense can be found by: the note you wrote on it, the
+     category it sits under, its currency, and the digits of the amount — so
+     "45" finds both 45.00 and 450.00, which is what you want when you only
+     half-remember the number. */
+  function searchText(tx) {
+    var category = categoryById(tx.category);
+    return foldText([
+      tx.comment,
+      category ? category.label : tx.category,
+      tx.currency,
+      tx.amount.toFixed(2)
+    ].join(' '));
+  }
+
+  /* Newest first, like the cache already is. Several words all have to match,
+     in any order, so "benzina mdl" narrows instead of widening. */
+  function search(query) {
+    var words = foldText(query).split(/\s+/).filter(Boolean);
+    if (!words.length) return [];
+
+    return cache.filter(function (tx) {
+      var hay = searchText(tx);
+      return words.every(function (word) { return hay.indexOf(word) !== -1; });
+    });
+  }
+
+  /* The per-currency split statsFor does, over any list of expenses at all.
+     Nothing is added across currencies here either: a search that turns up
+     lei and dollars has two answers, not one. Biggest first. */
+  function totalsOf(list) {
+    var sums = {};
+    var order = [];
+
+    list.forEach(function (tx) {
+      if (!(tx.currency in sums)) { sums[tx.currency] = 0; order.push(tx.currency); }
+      sums[tx.currency] += tx.amount;
+    });
+
+    return order.map(function (currency) {
+      return { currency: currency, total: round2(sums[currency]) };
+    }).sort(function (a, b) { return b.total - a.total; });
+  }
+
   function earliestMonth() {
     if (!cache.length) return currentMonth();
     var oldest = cache[0].date;
@@ -631,6 +690,8 @@ window.MyMon = window.MyMon || {};
     remove: remove,
     restore: restore,
     statsFor: statsFor,
+    search: search,
+    totalsOf: totalsOf,
     seedSample: seedSample,
     legacyExpenses: legacyExpenses,
     importLegacy: importLegacy,

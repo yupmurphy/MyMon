@@ -1,4 +1,4 @@
-# MyMon — v1.1.12
+# MyMon — v1.1.13
 
 MyMon is a simple personal expense tracker focused on clarity, not complexity.
 

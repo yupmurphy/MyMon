@@ -1063,6 +1063,89 @@ a.user-chip:hover { border-color: var(--brand-300); background: var(--brand-050)
 
 .stat p { margin: 0; }
 
+/* searching the expenses */
+
+/* Built like .input-money: the frame is the wrapper, so the magnifier and the
+   clear button sit inside it and the whole thing lights up on focus. */
+.search {
+  display: flex;
+  align-items: center;
+  gap: .55rem;
+  padding: 0 .75rem;
+  margin-bottom: .85rem;
+  background: var(--surface-sunken);
+  border: 1px solid var(--line);
+  border-radius: var(--r-pill);
+  transition: border-color .15s ease, box-shadow .15s ease, background-color .15s ease;
+}
+.search:focus-within {
+  background: var(--surface);
+  border-color: var(--brand-500);
+  box-shadow: var(--ring);
+}
+
+.search__icon {
+  width: 17px; height: 17px;
+  flex: none;
+  color: var(--ink-300);
+}
+.search:focus-within .search__icon { color: var(--brand-600); }
+
+.search__field {
+  flex: 1;
+  min-width: 0;
+  padding: .55rem 0;
+  font: inherit;
+  font-size: .95rem;
+  color: var(--ink-900);
+  background: none;
+  border: 0;
+}
+.search__field:focus { outline: none; }
+.search__field::placeholder { color: var(--ink-400); }
+
+/* Safari puts its own cross in a type="search" field; ours is the one that
+   also tells the page the search is over, so the browser's is hidden. */
+.search__field::-webkit-search-cancel-button,
+.search__field::-webkit-search-decoration { -webkit-appearance: none; appearance: none; }
+
+.search__clear {
+  width: 26px; height: 26px;
+  flex: none;
+  display: grid;
+  place-items: center;
+  padding: 0;
+  border: 0;
+  border-radius: 50%;
+  background: none;
+  color: var(--ink-400);
+  cursor: pointer;
+  transition: color .15s ease, background-color .15s ease;
+}
+.search__clear svg { width: 15px; height: 15px; }
+.search__clear:hover { background: var(--line); color: var(--ink-900); }
+.search__clear:focus-visible { outline: none; box-shadow: var(--ring); }
+
+/* What the matches come to. Several currencies stay several numbers — a
+   search that turns up lei and dollars has two answers, not one. */
+.search__sum {
+  display: flex;
+  align-items: baseline;
+  flex-wrap: wrap;
+  gap: .4rem;
+  margin: 0 0 .85rem;
+  font-variant-numeric: tabular-nums;
+}
+.search__sum b { font-size: 1.15rem; font-weight: 800; color: var(--ink-900); }
+.search__sum-label {
+  font-size: .76rem;
+  font-weight: 800;
+  letter-spacing: .05em;
+  text-transform: uppercase;
+  color: var(--ink-400);
+}
+.search__sum-and { color: var(--ink-300); font-weight: 800; }
+
 /* transaction list */
 
 /* The box the list is kept in. Without it a long month made the card as tall

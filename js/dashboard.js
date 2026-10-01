@@ -16,6 +16,11 @@
      dialog is the same either way — only its labels and its ending differ. */
   var editing = null;
 
+  /* What is typed in the search box. While it holds something the Expenses
+     card shows matches from every month instead of the month being viewed;
+     everything else on the page stays on the month. */
+  var query = '';
+
   /* ---------- helpers ---------- */
 
   function byId(id) { return document.getElementById(id); }
@@ -68,7 +73,10 @@
     renderMonthNav();
     renderStats(stats, part);
     renderBreakdown(stats, part);
-    renderTransactions(stats);
+    renderSearchBox();
+
+    if (query) renderMatches();
+    else renderTransactions(stats);
   }
 
   /* One line per currency, biggest spend first. Nothing is added across them:
@@ -221,6 +229,8 @@
 
   function renderTransactions(stats) {
     var hasData = stats.count > 0;
+    dom.txNoMatch.classList.add('hidden');
+    dom.searchSum.classList.add('hidden');
     dom.txEmpty.classList.toggle('hidden', hasData);
     dom.txScroll.classList.toggle('hidden', !hasData);
     dom.txHint.textContent = hasData
@@ -235,9 +245,16 @@
       return;
     }
 
+    dom.txGroups.innerHTML = renderDays(stats.transactions);
+  }
+
+  /* The list itself, a heading per day. Used for a month and for a set of
+     search results alike — both arrive already sorted newest first. */
+  function renderDays(list) {
     var groups = [];
     var index = {};
-    stats.transactions.forEach(function (tx) {
+
+    list.forEach(function (tx) {
       if (!index[tx.date]) {
         index[tx.date] = { date: tx.date, items: [] };
         groups.push(index[tx.date]);
@@ -245,12 +262,45 @@
       index[tx.date].items.push(tx);
     });
 
-    dom.txGroups.innerHTML = groups.map(function (group) {
+    return groups.map(function (group) {
       return '<div class="tx-group">' +
         '<h3 class="tx-day">' + ui.escapeHtml(data.dayLabel(group.date)) + '</h3>' +
         '<ul class="tx-list">' + group.items.map(renderTx).join('') + '</ul>' +
       '</div>';
     }).join('');
+  }
+
+  /* The box only earns its place once there is something to search. */
+  function renderSearchBox() {
+    dom.searchRow.classList.toggle('hidden', data.all().length === 0);
+    dom.searchClear.classList.toggle('hidden', !query);
+  }
+
+  /* Search results, from every month. The month's own empty state is kept out
+     of the way: "no expenses this month" is not the answer to a search. */
+  function renderMatches() {
+    var matches = data.search(query);
+    var found = matches.length > 0;
+
+    dom.txEmpty.classList.add('hidden');
+    dom.seedBtn.classList.add('hidden');
+    dom.txNoMatch.classList.toggle('hidden', found);
+    dom.txScroll.classList.toggle('hidden', !found);
+
+    dom.txHint.textContent = found
+      ? matches.length + (matches.length === 1 ? ' match' : ' matches') + ', any month'
+      : '';
+
+    dom.searchSum.classList.toggle('hidden', !found);
+    dom.searchSum.innerHTML = found
+      ? '<span class="search__sum-label">Adds up to</span>' +
+        data.totalsOf(matches).map(function (row) {
+          return '<b>' + ui.escapeHtml(ui.money(row.total, row.currency)) + '</b>';
+        }).join('<span class="search__sum-and" aria-hidden="true">+</span>')
+      : '';
+
+    dom.txGroups.innerHTML = found ? renderDays(matches) : '';
+    dom.txScroll.scrollTop = 0;
   }
 
   function renderTx(tx) {
@@ -522,6 +572,18 @@
       if (edit) openEditDialog(edit.dataset.edit);
     });
 
+    dom.searchField.addEventListener('input', function () {
+      query = dom.searchField.value.trim();
+      render();
+    });
+
+    /* Escape is the shortcut people already expect from a search box. */
+    dom.searchField.addEventListener('keydown', function (event) {
+      if (event.key === 'Escape' && query) { event.preventDefault(); clearSearch(); }
+    });
+
+    dom.searchClear.addEventListener('click', clearSearch);
+
     /* Switching which currency the chart and the tiles are about. */
     dom.currencyPicker.addEventListener('click', function (event) {
       var button = event.target.closest('[data-currency]');
@@ -557,6 +619,13 @@
     window.addEventListener('scroll', ui.hideTip, { passive: true });
   }
 
+  function clearSearch() {
+    query = '';
+    dom.searchField.value = '';
+    dom.searchField.focus();
+    render();
+  }
+
   function init() {
     dom = {
       greeting: byId('greeting'),
@@ -574,6 +643,11 @@
       breakdown: byId('breakdown'),
       breakdownEmpty: byId('breakdown-empty'),
       breakdownHint: byId('breakdown-hint'),
+      searchRow: byId('tx-search-row'),
+      searchField: byId('tx-search'),
+      searchClear: byId('tx-search-clear'),
+      searchSum: byId('tx-search-sum'),
+      txNoMatch: byId('tx-nomatch'),
       txScroll: byId('tx-scroll'),
       txGroups: byId('tx-groups'),
       txEmpty: byId('tx-empty'),
