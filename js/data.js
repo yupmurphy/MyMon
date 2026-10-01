@@ -620,20 +620,43 @@ window.MyMon = window.MyMon || {};
     return /[",\r\n]/.test(text) ? '"' + text.replace(/"/g, '""') + '"' : text;
   }
 
-  /* Oldest first — the cache is newest first, which is right for a screen and
-     backwards for a ledger you are going to scroll through. */
-  function toCsv() {
-    var rows = [['Date', 'Amount', 'Currency', 'Category', 'Note']];
+  /* The table itself, described rather than flattened, so a spreadsheet can be
+     told what each column holds and how wide to make it. Oldest first — the
+     cache is newest first, which is right for a screen and backwards for a
+     ledger you are going to read down. */
+  function toSheet() {
+    return {
+      name: 'Expenses',
+      columns: [
+        { title: 'Date',     type: 'date',   width: 13 },
+        { title: 'Amount',   type: 'number', width: 12 },
+        { title: 'Currency', type: 'text',   width: 10 },
+        { title: 'Category', type: 'text',   width: 16 },
+        { title: 'Note',     type: 'text',   width: 46 }
+      ],
+      rows: cache.slice().reverse().map(function (tx) {
+        var category = categoryById(tx.category);
+        return [
+          tx.date,
+          tx.amount,
+          tx.currency,
+          category ? category.label : tx.category,
+          tx.comment || ''
+        ];
+      })
+    };
+  }
 
-    cache.slice().reverse().forEach(function (tx) {
-      var category = categoryById(tx.category);
-      rows.push([
-        tx.date,
-        tx.amount.toFixed(2),
-        tx.currency,
-        category ? category.label : tx.category,
-        tx.comment || ''
-      ]);
+  /* The same table again, for anything that would rather have plain text.
+     Built from toSheet() so the two can never drift apart. */
+  function toCsv() {
+    var sheet = toSheet();
+    var rows = [sheet.columns.map(function (column) { return column.title; })];
+
+    sheet.rows.forEach(function (row) {
+      rows.push(row.map(function (cell, i) {
+        return sheet.columns[i].type === 'number' ? Number(cell).toFixed(2) : cell;
+      }));
     });
 
     return rows.map(function (row) {
@@ -790,6 +813,7 @@ window.MyMon = window.MyMon || {};
     statsFor: statsFor,
     search: search,
     totalsOf: totalsOf,
+    toSheet: toSheet,
     toCsv: toCsv,
     recentMonths: recentMonths,
     seedSample: seedSample,
