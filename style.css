@@ -41,14 +41,22 @@
   --line-strong: #d3ded5;
 
   /* The landing page's first screen. Its own tokens, because the top of that
-     gradient is not any surface the rest of the app uses, and a dark page
-     needs it dark — a light value here would stay light under the dark theme
-     and leave a bright band across the top with a visible edge where it
-     stops. --hero-top is kept close to --surface-page in both themes so the
-     gradient never ends in a line you can point at. */
+     gradient is not any surface the rest of the app uses, and each theme wants
+     a different amount of light up there. A light value left to stand in the
+     dark theme gave a bright band with a visible edge where it stopped; the
+     cure is not to take the light away but to spread it. --hero-fade says how
+     far down the gradient runs: short in the light theme, where the two ends
+     are near neighbours, and all the way down in the dark one, where the eye
+     would otherwise find the place it ends. */
   --hero-top: #eef7ec;
+  --hero-fade: 72%;
   --hero-glow-warm: rgba(95, 170, 85, .24);
   --hero-glow-cool: rgba(126, 196, 232, .22);
+
+  /* Text that sits on a filled --brand-700 shape. White on the light theme's
+     deep green; nearly black on the dark theme's pale green, which white
+     would be unreadable against. */
+  --on-brand-700: #ffffff;
 
   /* The header sits over whatever is scrolling under it, so it is the page's
      own colour with some of that showing through. */
@@ -149,11 +157,16 @@
     --line-strong: #35413a;
     --surface-glass: rgba(16, 22, 19, .82);
 
-    /* Barely above the page colour: on black, a gradient with any real
-       lightness in it reads as a wash with a hard edge where it stops. */
-    --hero-top: #17221c;
-    --hero-glow-warm: rgba(95, 170, 85, .16);
-    --hero-glow-cool: rgba(96, 156, 204, .12);
+    /* Light at the top here too — it is the first thing anybody sees and it
+       is worth having. It was the *edge* that was wrong, not the glow, so
+       the ramp now runs the full height instead of stopping two thirds
+       down, and the glows stay soft enough not to grey the page out. */
+    --hero-top: #22302a;
+    --hero-fade: 100%;
+    --hero-glow-warm: rgba(120, 200, 110, .20);
+    --hero-glow-cool: rgba(110, 170, 215, .15);
+
+    --on-brand-700: #0e1611;
 
     --inverse: #28322c;
     --on-inverse: #e9efea;
@@ -207,11 +220,16 @@
   --line-strong: #35413a;
   --surface-glass: rgba(16, 22, 19, .82);
 
-  /* Barely above the page colour: on black, a gradient with any real
-     lightness in it reads as a wash with a hard edge where it stops. */
-  --hero-top: #17221c;
-  --hero-glow-warm: rgba(95, 170, 85, .16);
-  --hero-glow-cool: rgba(96, 156, 204, .12);
+  /* Light at the top here too — it is the first thing anybody sees and it
+     is worth having. It was the *edge* that was wrong, not the glow, so
+     the ramp now runs the full height instead of stopping two thirds
+     down, and the glows stay soft enough not to grey the page out. */
+  --hero-top: #22302a;
+  --hero-fade: 100%;
+  --hero-glow-warm: rgba(120, 200, 110, .20);
+  --hero-glow-cool: rgba(110, 170, 215, .15);
+
+  --on-brand-700: #0e1611;
 
   --inverse: #28322c;
   --on-inverse: #e9efea;
@@ -750,7 +768,7 @@ html[data-session="out"] [data-when="signed-in"] { display: none !important; }
   background:
     radial-gradient(900px 420px at 12% -10%, var(--hero-glow-warm), transparent 62%),
     radial-gradient(760px 420px at 92% 0%, var(--hero-glow-cool), transparent 60%),
-    linear-gradient(180deg, var(--hero-top) 0%, var(--surface-page) 72%);
+    linear-gradient(180deg, var(--hero-top) 0%, var(--surface-page) var(--hero-fade));
 }
 
 .hero__grid {
@@ -1338,7 +1356,7 @@ html[data-session="out"] [data-when="signed-in"] { display: none !important; }
 .trend__bar[aria-current] .trend__fill { background: var(--brand-700); }
 .trend__bar[aria-current] .trend__tick {
   background: var(--brand-700);
-  color: #fff;
+  color: var(--on-brand-700);
 }
 
 .trend__tick {
