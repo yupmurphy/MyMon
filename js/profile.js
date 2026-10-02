@@ -84,6 +84,96 @@ window.MyMon = window.MyMon || {};
     return text || null;
   }
 
+  /* ---------- the first time someone signs in --------------------------- */
+
+  /* Google hands over one string — "Victor Luca" — and never the two halves
+     separately, whatever it is asked for. Rather than guess where the seam is
+     and be wrong about anyone with two given names, the guess is only ever a
+     suggestion typed into a field the person then corrects. */
+  function splitName(fullName) {
+    var parts = String(fullName || '').trim().split(/\s+/).filter(Boolean);
+    if (!parts.length) return { first: '', last: '' };
+    return { first: parts[0], last: parts.slice(1).join(' ') };
+  }
+
+  /* A name squeezed into something a username is allowed to be: lowercase,
+     no accents, letters and digits only, starting with a letter. */
+  function slug(value) {
+    var text = String(value || '').toLowerCase();
+    if (text.normalize) {
+      text = text.normalize('NFD').replace(/[̀-ͯ]/g, '');
+    }
+    return text.replace(/[^a-z0-9]/g, '').replace(/^[^a-z]+/, '').slice(0, 14);
+  }
+
+  /* A username to start from, never one to be stuck with: it is put in a field
+     the person can rewrite before anything is saved. The bare name is tried
+     first because that is the one worth having; digits are only added when
+     somebody already has it. */
+  function suggest(fullName) {
+    var stem = slug(fullName);
+    if (stem.length < MIN) stem = 'mymon';
+
+    return tryName(stem, 0);
+
+    function tryName(candidate, attempt) {
+      if (attempt > 4) return Promise.resolve(candidate);
+
+      return isAvailable(candidate)
+        .then(function (free) {
+          if (free) return candidate;
+          var digits = String(Math.floor(Math.random() * 9000) + 1000);
+          return tryName(stem.slice(0, 20 - digits.length) + digits, attempt + 1);
+        })
+        .catch(function () { return candidate; });
+    }
+  }
+
+  /* Everything the welcome page collects, written in one go. The account gets
+     the name as well as the profile: the account's copy is what greets you
+     before any profile has been fetched, and it is what a fresh install reads
+     first. */
+  function saveSetup(firstName, lastName, candidate) {
+    var checked = validate(candidate);
+    if (!checked.ok) return Promise.resolve({ ok: false, error: checked.error });
+
+    var first = String(firstName == null ? '' : firstName).trim();
+    if (!first) {
+      return Promise.resolve({ ok: false, error: 'Tell MyMon your first name.', field: 'first' });
+    }
+
+    return NS.session.updateName(first, lastName)
+      .then(function () { return save(candidate); })
+      .then(function (result) {
+        if (!result.ok) return result;
+        return saveName(first, lastName).then(function () { return result; });
+      });
+  }
+
+  /* The gate in front of the app. Somebody signing in for the first time has
+     no profile row at all: no username, so nobody can invite them anywhere,
+     and no name, so a group would have nothing to call them. They fill it in
+     once and never see this again.
+
+     Resolves true to carry on, false when the page is already on its way
+     somewhere else. A database that cannot answer resolves true as well —
+     being unable to check is no reason to lock somebody out of their own
+     expenses. */
+  function requireSetup() {
+    return load()
+      .then(function (row) {
+        if (row && row.username && row.first_name) return true;
+        window.location.replace('welcome.html');
+        return false;
+      })
+      .catch(function (error) {
+        if (window.console) {
+          window.console.warn('profile: ' + (error && error.message));
+        }
+        return true;
+      });
+  }
+
   /* Asks the database whether a name is free. It answers yes or no and gives
      away nothing else — no list of usernames, no hint of who exists. */
   function isAvailable(candidate) {
@@ -142,6 +232,10 @@ window.MyMon = window.MyMon || {};
     load: load,
     isAvailable: isAvailable,
     save: save,
-    saveName: saveName
+    saveName: saveName,
+    splitName: splitName,
+    suggest: suggest,
+    saveSetup: saveSetup,
+    requireSetup: requireSetup
   };
 })(window.MyMon);

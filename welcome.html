@@ -1,0 +1,139 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+  <meta charset="UTF-8" />
+  <meta name="viewport" content="width=device-width, initial-scale=1.0" />
+  <title>Welcome — MyMon</title>
+  <meta name="robots" content="noindex" />
+  <link rel="icon" href="favicon.ico" />
+  <link rel="manifest" href="manifest.webmanifest" />
+  <meta name="theme-color" content="#3d8a45" />
+  <link rel="apple-touch-icon" sizes="180x180" href="apple-touch-icon.png" />
+  <meta name="apple-mobile-web-app-status-bar-style" content="default" />
+  <meta name="apple-mobile-web-app-capable" content="yes" />
+  <meta name="apple-mobile-web-app-title" content="MyMon" />
+  <link rel="preconnect" href="https://fonts.googleapis.com" />
+  <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin />
+  <link href="https://fonts.googleapis.com/css2?family=Nunito:wght@400;600;700;800;900&display=swap" rel="stylesheet" />
+  <link rel="stylesheet" href="style.css" />
+
+  <!-- Before a single pixel is painted. The stylesheet follows the system
+       setting by itself; this is only for the case where the button has
+       overruled it, because a page that reached the screen first would
+       flash white on its way to dark. -->
+  <script>
+    (function () {
+      try {
+        var chosen = localStorage.getItem('mymon.theme');
+        if (chosen === 'dark' || chosen === 'light') {
+          document.documentElement.setAttribute('data-theme', chosen);
+        }
+      } catch (err) { /* private window, or site data blocked */ }
+    })();
+  </script>
+</head>
+
+<!-- Hidden until we know who this is, like the dashboard: the fields are
+     filled in from the Google account, and showing them empty for an instant
+     first would look like the page had lost them. -->
+<body class="booting">
+  <!-- No nav here on purpose. This page is one short job, and a link out of it
+       would only land somewhere that sends you straight back. -->
+  <header class="site-header">
+    <div class="container">
+      <a class="brand" href="index.html?stay=1" aria-label="MyMon home">
+        <span class="logo">MyMon</span>
+      </a>
+
+      <button class="theme-btn" type="button" data-theme-toggle
+              aria-label="Switch to the dark theme" title="Switch to the dark theme"
+              style="margin-left: auto">
+        <svg class="theme-btn__moon" viewBox="0 0 24 24" fill="none" stroke="currentColor"
+             stroke-width="2.2" stroke-linecap="round" stroke-linejoin="round" aria-hidden="true">
+          <path d="M20.2 14.3A8.4 8.4 0 0 1 9.7 3.8a8.6 8.6 0 1 0 10.5 10.5z" />
+        </svg>
+        <svg class="theme-btn__sun" viewBox="0 0 24 24" fill="none" stroke="currentColor"
+             stroke-width="2.2" stroke-linecap="round" aria-hidden="true">
+          <circle cx="12" cy="12" r="4.1" />
+          <path d="M12 2.6v2.1M12 19.3v2.1M2.6 12h2.1M19.3 12h2.1M5.3 5.3l1.5 1.5M17.2 17.2l1.5 1.5M18.7 5.3l-1.5 1.5M6.8 17.2l-1.5 1.5" />
+        </svg>
+      </button>
+    </div>
+  </header>
+
+  <main class="welcome">
+    <div class="container">
+      <section class="card welcome__card" aria-labelledby="welcome-title">
+        <p class="eyebrow">Welcome</p>
+        <h1 id="welcome-title" class="welcome__title">What should we call you?</h1>
+        <p class="welcome__lead">
+          Your name is what people in a shared group will see beside anything you
+          put in it. Your username is how a friend finds you to invite you.
+          Both are yours to change later, in Settings.
+        </p>
+
+        <form id="welcome-form" novalidate>
+          <div class="welcome__names">
+            <div class="field" data-field="first">
+              <label for="field-first">First name</label>
+              <input class="input" id="field-first" type="text" maxlength="40"
+                     autocomplete="given-name" />
+              <p class="field__error"></p>
+            </div>
+
+            <div class="field" data-field="last">
+              <label for="field-last">Last name <span class="field__optional">&mdash; optional</span></label>
+              <input class="input" id="field-last" type="text" maxlength="40"
+                     autocomplete="family-name" />
+              <p class="field__error"></p>
+            </div>
+          </div>
+
+          <div class="field" data-field="username">
+            <label for="field-username">Username</label>
+            <div class="input-at">
+              <span aria-hidden="true">@</span>
+              <input id="field-username" type="text" maxlength="20" spellcheck="false"
+                     autocapitalize="none" autocomplete="off" />
+            </div>
+            <p class="card__hint welcome__status" id="username-status" aria-live="polite"></p>
+            <p class="field__error"></p>
+          </div>
+
+          <button class="btn btn--primary btn--lg btn--block" type="submit" id="welcome-submit">
+            Start using MyMon
+          </button>
+        </form>
+
+        <p class="welcome__foot">
+          Nothing here is shared with anybody until you join a group and put
+          something in it.
+        </p>
+      </section>
+    </div>
+  </main>
+
+  <footer class="site-footer">
+    <div class="container">
+      <div class="site-footer__brand">
+        <span class="logo logo--quiet" aria-hidden="true">MyMon</span>
+        <p>Your money habits. Under &ldquo;parental&rdquo; supervision. <b>Again.</b></p>
+      </div>
+      <nav class="site-footer__links" aria-label="More">
+        <a href="index.html?stay=1" data-page="home">Home</a>
+        <a href="about.html" data-page="about">About</a>
+      </nav>
+      <p class="site-footer__meta">&copy; <span data-year>2026</span> MyMon &mdash; v1.1.22</p>
+    </div>
+  </footer>
+
+  <div class="booting-veil" aria-hidden="true"><span class="spinner"></span></div>
+
+  <script src="vendor/supabase.js"></script>
+  <script src="js/config.js"></script>
+  <script src="js/session.js"></script>
+  <script src="js/profile.js"></script>
+  <script src="js/ui.js"></script>
+  <script src="js/welcome.js"></script>
+</body>
+</html>

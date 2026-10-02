@@ -326,6 +326,16 @@
       .then(function (signedIn) {
         if (!signedIn) return null;
         user = signedIn;
+
+        /* The same gate the dashboard has. Settings can change a name and a
+           username, but it cannot be where you first get one — half this page
+           is about things an unfinished account does not have yet. */
+        return NS.profile.requireSetup().then(function (setUp) {
+          return setUp ? signedIn : null;
+        });
+      })
+      .then(function (signedIn) {
+        if (!signedIn) return null;
         ui.mountHeader({ page: 'settings' });
         ui.year();
 

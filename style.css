@@ -2057,6 +2057,55 @@ html[data-session="out"] [data-when="signed-in"] { display: none !important; }
 .pick__option--done > span { background: var(--surface-sunken); opacity: .65; }
 .pick__option--done:hover > span { border-color: var(--line-strong); }
 
+/* ---------- 6c. The first screen after a first sign-in ---------- */
+
+.welcome {
+  padding: 3.5rem 0 4.5rem;
+  display: grid;
+  place-items: start center;
+}
+
+/* Narrow on purpose. Three fields and a button is not a page to spread across
+   a desktop, and the line length keeps the explanation readable. */
+.welcome__card {
+  width: 100%;
+  max-width: 520px;
+  /* The grid above centres .container, which is already as wide as the page
+     allows; the card inside it has to centre itself. */
+  margin-inline: auto;
+}
+
+.welcome__title {
+  font-size: 1.75rem;
+  letter-spacing: -.02em;
+  margin: 0 0 .6rem;
+}
+
+.welcome__lead {
+  margin: 0 0 1.75rem;
+  color: var(--ink-500);
+  font-size: .95rem;
+  line-height: 1.6;
+}
+
+/* Two names side by side, one under the other once that stops fitting. */
+.welcome__names {
+  display: grid;
+  grid-template-columns: 1fr 1fr;
+  gap: 0 1rem;
+}
+
+.welcome__status { white-space: normal; margin-top: .4rem; }
+
+.welcome__card .btn--block { margin-top: .5rem; }
+
+.welcome__foot {
+  margin: 1.4rem 0 0;
+  font-size: .85rem;
+  line-height: 1.55;
+  color: var(--ink-400);
+}
+
 /* ---------- 7. Charts ---------- */
 .share-bar {
   display: flex;
@@ -2350,6 +2399,10 @@ dialog.modal[open] { animation: pop .18s cubic-bezier(.22, .61, .36, 1); }
   /* The name and the amount keep their own lines; only the bar gives way. */
   .share { grid-template-columns: minmax(0, 1fr) auto; row-gap: .25rem; }
   .share__track { grid-column: 1 / -1; grid-row: 2; }
+
+  .welcome { padding: 2rem 0 3rem; }
+  .welcome__title { font-size: 1.45rem; }
+  .welcome__names { grid-template-columns: 1fr; gap: 0; }
 
   .thread { padding: .75rem .8rem; }
   .thread__write { flex-wrap: wrap; }

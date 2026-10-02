@@ -898,6 +898,14 @@
       .then(function (signedIn) {
         if (!signedIn) return null;
         user = signedIn;
+
+        /* A first sign-in has no profile behind it: no username, so nobody can
+           invite them anywhere, and no name, so a group would have nothing to
+           call them. That is asked once, on welcome.html, and never again. */
+        return NS.profile.requireSetup();
+      })
+      .then(function (setUp) {
+        if (!setUp) return null;
         ui.mountHeader({ page: 'dashboard' });
         ui.year();
         buildCategoryPicker();
