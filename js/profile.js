@@ -1,7 +1,7 @@
 /* MyMon — the public half of an account.
    A username is the name other people will eventually find you by, so unlike
    the display name it has to be unique. That uniqueness is enforced by the
-   database (see supabase/profiles.sql); the rules below are only here to give
+   database (see supabase/migrations/); the rules below are only here to give
    a clear answer before a round trip. */
 window.MyMon = window.MyMon || {};
 
@@ -18,7 +18,8 @@ window.MyMon = window.MyMon || {};
     return client.from(TABLE);
   }
 
-  /* Mirrors the check constraint in profiles.sql, in words a person can act on.
+  /* Mirrors the check constraint on the profiles table, in words a person can
+     act on.
      Returns { ok, error, value } with value always lowercased and trimmed. */
   function validate(candidate) {
     var value = String(candidate == null ? '' : candidate).trim().toLowerCase();

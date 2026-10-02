@@ -40,6 +40,16 @@
   --line: #e4ebe5;
   --line-strong: #d3ded5;
 
+  /* The landing page's first screen. Its own tokens, because the top of that
+     gradient is not any surface the rest of the app uses, and a dark page
+     needs it dark — a light value here would stay light under the dark theme
+     and leave a bright band across the top with a visible edge where it
+     stops. --hero-top is kept close to --surface-page in both themes so the
+     gradient never ends in a line you can point at. */
+  --hero-top: #eef7ec;
+  --hero-glow-warm: rgba(95, 170, 85, .24);
+  --hero-glow-cool: rgba(126, 196, 232, .22);
+
   /* The header sits over whatever is scrolling under it, so it is the page's
      own colour with some of that showing through. */
   --surface-glass: rgba(255, 255, 255, .82);
@@ -139,6 +149,12 @@
     --line-strong: #35413a;
     --surface-glass: rgba(16, 22, 19, .82);
 
+    /* Barely above the page colour: on black, a gradient with any real
+       lightness in it reads as a wash with a hard edge where it stops. */
+    --hero-top: #17221c;
+    --hero-glow-warm: rgba(95, 170, 85, .16);
+    --hero-glow-cool: rgba(96, 156, 204, .12);
+
     --inverse: #28322c;
     --on-inverse: #e9efea;
     --scrim: rgba(0, 0, 0, .62);
@@ -190,6 +206,12 @@
   --line: #273029;
   --line-strong: #35413a;
   --surface-glass: rgba(16, 22, 19, .82);
+
+  /* Barely above the page colour: on black, a gradient with any real
+     lightness in it reads as a wash with a hard edge where it stops. */
+  --hero-top: #17221c;
+  --hero-glow-warm: rgba(95, 170, 85, .16);
+  --hero-glow-cool: rgba(96, 156, 204, .12);
 
   --inverse: #28322c;
   --on-inverse: #e9efea;
@@ -726,9 +748,9 @@ html[data-session="out"] [data-when="signed-in"] { display: none !important; }
   overflow: hidden;
   padding: clamp(3.5rem, 9vw, 6rem) 0 clamp(3rem, 7vw, 5rem);
   background:
-    radial-gradient(900px 420px at 12% -10%, rgba(95, 170, 85, .24), transparent 62%),
-    radial-gradient(760px 420px at 92% 0%, rgba(126, 196, 232, .22), transparent 60%),
-    linear-gradient(180deg, #eef7ec 0%, var(--surface-page) 72%);
+    radial-gradient(900px 420px at 12% -10%, var(--hero-glow-warm), transparent 62%),
+    radial-gradient(760px 420px at 92% 0%, var(--hero-glow-cool), transparent 60%),
+    linear-gradient(180deg, var(--hero-top) 0%, var(--surface-page) 72%);
 }
 
 .hero__grid {

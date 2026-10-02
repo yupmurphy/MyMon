@@ -18,7 +18,7 @@ window.MyMon = window.MyMon || {};
      validated in this exact sequence for colour-blind separation, so segments
      sit next to each other safely in the share bar. Do not reorder casually.
      Changing the ids here means changing the check constraint in
-     supabase/schema.sql too. */
+     20260930165443_expenses.sql too. */
   /* The colours name a token rather than carrying a hex, because there are two
      palettes now: the light one these were validated in, and a separate set
      chosen and validated for the dark surface. A hex here would be painted
@@ -204,7 +204,7 @@ window.MyMon = window.MyMon || {};
   /* ---------- validation --------------------------------------------------
      Rules come straight from the v1 spec:
        amount  at least 0.01, never negative, at most two decimals
-       date    never in the future, and only this month or last month
+       date    never in the future, and not more than 20 years back
        comment optional
      The database repeats the amount, category and comment rules as constraints,
      so a bug here cannot write nonsense. The date bounds stay here only: they
@@ -303,8 +303,8 @@ window.MyMon = window.MyMon || {};
     if (!error) return null;
     var text = String(error.message || '') + ' ' + String(error.code || '');
     if (/currency/i.test(text) && /(does not exist|42703|schema cache)/i.test(text)) {
-      return 'This project needs one more step: run supabase/currency.sql in the ' +
-        'Supabase SQL Editor, then reload.';
+      return 'This project is behind: run the migrations in supabase/migrations/ ' +
+        'that have not been applied yet, then reload.';
     }
     return null;
   }
