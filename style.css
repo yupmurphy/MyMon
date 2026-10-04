@@ -18,20 +18,47 @@
      instead of staying stubbornly white in front of a dark page. */
   color-scheme: light;
 
-  /* brand — taken from the MyMon logo */
+  /* brand — taken from the MyMon logo.
+     Two greens with two jobs, and the jobs are the point: --brand-700 is the
+     one you read words in, --brand-600 is the one you put white words on.
+     Mixing them up is how the footer line and the "spent less" figure ended
+     up at 4.06:1, and how the dark theme put white on pale green.
+     --brand-600 also moved seven steps darker (from #3d8a45) so white on it
+     clears 4.5:1 — 4.86 now, against 4.27 before. */
   --brand-700: #2f6b35;
-  --brand-600: #3d8a45;
+  --brand-600: #38803e;
+  --brand-hover: #2d6833;   /* primary button, pressed or hovered */
+
+  /* The band at the foot of the landing page is a deep green slab carrying
+     white text, in both themes. It used to be mixed from --brand-600 and
+     --brand-700, which works only while --brand-700 is the dark one — in the
+     dark theme that token is pale, so the slab faded to pale green under its
+     own white text, and the white button inside it was lettered in pale green
+     on white. Its own tokens, so neither can happen again. */
+  --band-from: #38803e;
+  --band-to: #2f6b35;
+  --band-ink: #2f6b35;   /* the lettering on the white button inside it */
   --brand-500: #5faa55;
   --brand-300: #a8d6a0;
   --brand-100: #e7f3e5;
   --brand-050: #f3f9f2;
 
-  /* ink */
+  /* ink
+     The three quiet steps were measured against the surfaces they actually
+     sit on rather than chosen by eye. At their old values --ink-500 came to
+     4.02:1 on the sunken surface and --ink-400 to 2.73:1, both below the
+     floor for text somebody is meant to read, and --ink-300 was 1.94:1 while
+     colouring a row's edit and delete icons. Secondary text that is too pale
+     does not read as calm, it reads as unfinished. On white / page / sunken:
+       --ink-700  8.98 / 8.54 / 8.32   headings and strong body
+       --ink-500  5.65 / 5.38 / 5.24   secondary text
+       --ink-400  4.92 / 4.68 / 4.56   the quietest text still meant to be read
+       --ink-300  3.48 / 3.31 / 3.23   icons and separators, never prose */
   --ink-900: #10201a;
   --ink-700: #3c4d45;
-  --ink-500: #6d7d74;
-  --ink-400: #8b9a91;
-  --ink-300: #aab6ae;
+  --ink-500: #5a6b62;
+  --ink-400: #667469;
+  --ink-300: #7e8d84;
 
   /* surfaces */
   --surface: #ffffff;
@@ -138,7 +165,18 @@
     color-scheme: dark;
 
     --brand-700: #9ad98f;   /* green you read words in */
-    --brand-600: #3d8a45;   /* green you put white words on — unchanged, 4.5:1 */
+    --brand-600: #38803e;   /* green you put white words on — white is 4.86:1 */
+    /* Hover darkens here too. Going lighter is the usual move on a dark page,
+       but every green pale enough to look lifted drops white under 4:1 — the
+       old hover handed the button --brand-700 and produced white on pale
+       green at 1.65:1, which is not a hover state, it is a disappearance. */
+    --brand-hover: #2f6b35;
+
+    /* Deeper than the light theme's, so a slab of it does not glare on a
+       dark page. Still deep enough to carry white. */
+    --band-from: #2f6b35;
+    --band-to: #1f4a26;
+    --band-ink: #2f6b35;
     --brand-500: #6fbb64;
     --brand-300: #7fc077;
     --brand-100: #1f2c23;   /* a tint, so it goes dark rather than pale */
@@ -201,7 +239,11 @@
   color-scheme: dark;
 
   --brand-700: #9ad98f;
-  --brand-600: #3d8a45;
+  --brand-600: #38803e;
+  --brand-hover: #2f6b35;
+  --band-from: #2f6b35;
+  --band-to: #1f4a26;
+  --band-ink: #2f6b35;
   --brand-500: #6fbb64;
   --brand-300: #7fc077;
   --brand-100: #1f2c23;
@@ -301,7 +343,7 @@ main h1 {
 main h1 + .hero__lede,
 main h1 + p { color: var(--ink-500); max-width: 56ch; }
 
-a { color: var(--brand-600); }
+a { color: var(--brand-700); }
 
 img { max-width: 100%; height: auto; }
 
@@ -517,7 +559,7 @@ html[data-session="out"] [data-when="signed-in"] { display: none !important; }
 }
 
 .site-footer a { color: var(--ink-500); text-decoration: none; }
-.site-footer a:hover { color: var(--brand-600); }
+.site-footer a:hover { color: var(--brand-700); }
 
 /* The line the hero opens with, said once more on the way out — quietly. */
 .site-footer__brand {
@@ -529,14 +571,14 @@ html[data-session="out"] [data-when="signed-in"] { display: none !important; }
 
 
 .site-footer__brand p { margin: 0; color: var(--ink-400); }
-.site-footer__brand b { color: var(--brand-600); font-weight: 900; letter-spacing: .06em; }
+.site-footer__brand b { color: var(--brand-700); font-weight: 900; letter-spacing: .06em; }
 
 .site-footer__meta { margin: 0; font-variant-numeric: tabular-nums; }
 
 /* Home and About live here now rather than in the header. */
 .site-footer__links { display: flex; align-items: center; gap: 1.1rem; }
 .site-footer__links a { font-weight: 700; }
-.site-footer__links a[aria-current="page"] { color: var(--brand-600); }
+.site-footer__links a[aria-current="page"] { color: var(--brand-700); }
 
 /* ---------- 4. Buttons, forms, chips ---------- */
 .btn {
@@ -563,9 +605,11 @@ html[data-session="out"] [data-when="signed-in"] { display: none !important; }
 .btn--primary {
   background: var(--brand-600);
   color: #fff;
-  box-shadow: 0 1px 2px rgba(16, 32, 20, .12), 0 8px 20px rgba(61, 138, 69, .28);
+  /* A hint of lift, not a glow. The wide green halo was fine on a page with
+     one button on it and heavy on Settings, which stacks three. */
+  box-shadow: 0 1px 2px rgba(16, 32, 20, .14), 0 5px 12px rgba(61, 138, 69, .15);
 }
-.btn--primary:hover { background: var(--brand-700); }
+.btn--primary:hover { background: var(--brand-hover); }
 
 .btn--ghost {
   background: var(--surface);
@@ -722,6 +766,11 @@ html[data-session="out"] [data-when="signed-in"] { display: none !important; }
   margin: 0;
 }
 
+/* Seven into three columns leaves one on its own looking like a mistake.
+   The last option is "Other", so giving it the full row is not a patch over
+   the arithmetic — it is the catch-all, drawn as the catch-all. */
+.cat-grid > *:last-child { grid-column: 1 / -1; }
+
 .cat-option { position: relative; display: block; }
 .cat-option input {
   position: absolute;
@@ -801,7 +850,7 @@ html[data-session="out"] [data-when="signed-in"] { display: none !important; }
   margin: 0 0 1rem;
 }
 
-.hero h1 em { font-style: normal; color: var(--brand-600); }
+.hero h1 em { font-style: normal; color: var(--brand-700); }
 
 /* The project's own line. It is a joke, and a joke delivered in 16px grey is
    not a joke — so it gets the size, the weight and the rule down its side that
@@ -817,7 +866,7 @@ html[data-session="out"] [data-when="signed-in"] { display: none !important; }
   color: var(--ink-900);
 }
 
-.signature em { font-style: normal; color: var(--brand-600); }
+.signature em { font-style: normal; color: var(--brand-700); }
 
 /* "AGAIN." lands on its own line, like a stamp. */
 .signature b {
@@ -827,7 +876,7 @@ html[data-session="out"] [data-when="signed-in"] { display: none !important; }
   font-weight: 900;
   letter-spacing: .2em;
   text-transform: uppercase;
-  color: var(--brand-600);
+  color: var(--brand-700);
 }
 
 .hero__lede {
@@ -907,10 +956,16 @@ html[data-session="out"] [data-when="signed-in"] { display: none !important; }
 }
 .section__head p { color: var(--ink-500); font-size: 1.05rem; margin-top: .5rem; }
 
+/* Three across, or one under the other — never two and a widow. auto-fit was
+   picking two columns across a wide middle band and leaving the third reason
+   alone on the second row. */
 .reasons {
   display: grid;
-  grid-template-columns: repeat(auto-fit, minmax(230px, 1fr));
+  grid-template-columns: repeat(3, minmax(0, 1fr));
   gap: clamp(1.5rem, 4vw, 3rem);
+}
+@media (max-width: 860px) {
+  .reasons { grid-template-columns: 1fr; gap: 1.75rem; }
 }
 
 /* No box. A coloured rule and a numeral carry it, which reads as deliberate
@@ -1035,7 +1090,7 @@ html[data-session="out"] [data-when="signed-in"] { display: none !important; }
   color: #fff;
   background:
     radial-gradient(600px 300px at 20% 0%, rgba(255, 255, 255, .18), transparent 60%),
-    linear-gradient(135deg, var(--brand-600), var(--brand-700));
+    linear-gradient(135deg, var(--band-from), var(--band-to));
   box-shadow: var(--shadow-md);
 }
 
@@ -1062,7 +1117,7 @@ html[data-session="out"] [data-when="signed-in"] { display: none !important; }
 
 .cta-band .btn--primary {
   background: #fff;
-  color: var(--brand-700);
+  color: var(--band-ink);
   box-shadow: 0 10px 30px rgba(0, 0, 0, .18);
 }
 .cta-band .btn--primary:hover { background: var(--brand-050); }
@@ -1101,7 +1156,7 @@ html[data-session="out"] [data-when="signed-in"] { display: none !important; }
 .input-at input:focus,
 .input-at input:focus-visible { outline: none; box-shadow: none; }
 
-.card__hint[data-state="good"] { color: var(--brand-600); font-weight: 700; }
+.card__hint[data-state="good"] { color: var(--brand-700); font-weight: 700; }
 .card__hint[data-state="bad"] { color: var(--danger); font-weight: 700; }
 
 .settings-pair {
@@ -1207,7 +1262,7 @@ html[data-session="out"] [data-when="signed-in"] { display: none !important; }
   min-height: 1.5rem;
 }
 .summary__delta[data-dir="up"] { color: var(--danger); }
-.summary__delta[data-dir="down"] { color: var(--brand-600); }
+.summary__delta[data-dir="down"] { color: var(--brand-700); }
 .summary__delta small { font-weight: 700; color: var(--ink-400); }
 
 .summary__actions { display: flex; align-items: center; gap: .75rem; }
@@ -1364,7 +1419,7 @@ html[data-session="out"] [data-when="signed-in"] { display: none !important; }
   max-width: 100%;
   padding: .15rem .4rem;
   border-radius: var(--r-pill);
-  font-size: .7rem;
+  font-size: .78rem;
   font-weight: 800;
   color: var(--ink-400);
   white-space: nowrap;
@@ -1482,7 +1537,7 @@ html[data-session="out"] [data-when="signed-in"] { display: none !important; }
   text-transform: uppercase;
   color: var(--ink-400);
 }
-.search__sum-and { color: var(--ink-300); font-weight: 800; }
+.search__sum-and { color: var(--ink-400); font-weight: 800; }
 
 /* transaction list */
 
@@ -1763,7 +1818,7 @@ html[data-session="out"] [data-when="signed-in"] { display: none !important; }
   text-align: right;
   white-space: nowrap;
 }
-.group-card__and { color: var(--ink-300); font-weight: 800; margin: 0 .3rem; }
+.group-card__and { color: var(--ink-400); font-weight: 800; margin: 0 .3rem; }
 
 .back-link {
   display: inline-flex;
@@ -1834,7 +1889,7 @@ html[data-session="out"] [data-when="signed-in"] { display: none !important; }
   color: var(--ink-500);
 }
 .person .badge { width: 21px; height: 21px; font-size: .66rem; }
-.person--waiting .badge { background: var(--ink-300); }
+.person--waiting .badge { background: var(--ink-500); }
 .person__name { padding-right: .3rem; }
 .person__tag {
   padding: .1rem .45rem;
@@ -1986,8 +2041,12 @@ html[data-session="out"] [data-when="signed-in"] { display: none !important; }
   display: grid;
   place-items: center;
   border-radius: 50%;
-  background: var(--brand-600);
-  color: #fff;
+  /* Deliberately not the brand green. These circles say who somebody is, and
+     green in this app says "press me"; when every face in a group wears it,
+     the one button that meant it stops standing out. Ink flips with the
+     theme on its own, so the initial stays readable either way. */
+  background: var(--ink-700);
+  color: var(--surface);
   font-size: .76rem;
   font-weight: 900;
   line-height: 1;
@@ -2168,7 +2227,7 @@ html[data-session="out"] [data-when="signed-in"] { display: none !important; }
 .share-bar:hover .share-bar__seg { opacity: .4; }
 .share-bar .share-bar__seg:hover { opacity: 1; }
 
-.breakdown { list-style: none; margin: 0; padding: 0; display: grid; gap: 1.05rem; }
+.breakdown { list-style: none; margin: 0; padding: 0; display: grid; gap: .85rem; }
 
 .breakdown__row { display: grid; gap: .35rem; }
 
@@ -2202,7 +2261,7 @@ html[data-session="out"] [data-when="signed-in"] { display: none !important; }
 }
 
 .breakdown__track {
-  height: 10px;
+  height: 6px;
   border-radius: var(--r-pill);
   background: var(--surface-sunken);
   overflow: hidden;
@@ -2303,7 +2362,7 @@ dialog.modal[open] { animation: pop .18s cubic-bezier(.22, .61, .36, 1); }
   place-items: center;
   border-radius: 50%;
   background: var(--brand-100);
-  color: var(--brand-600);
+  color: var(--brand-700);
 }
 .empty__art svg { width: 26px; height: 26px; }
 .empty h3 { font-size: 1.05rem; margin-bottom: .25rem; }
@@ -2371,8 +2430,22 @@ dialog.modal[open] { animation: pop .18s cubic-bezier(.22, .61, .36, 1); }
   .site-nav a { padding: .35rem .5rem; font-size: .85rem; }
   .btn--quiet { padding: .35rem .5rem; font-size: .82rem; }
   .card { padding: 1.25rem; }
-  .stat-row { grid-template-columns: 1fr 1fr; }
-  .stat-row .stat:last-child { grid-column: 1 / -1; }
+  /* Two columns put the third card on a row of its own at twice the width of
+     its siblings, which looks like a layout that gave up rather than one that
+     decided. One column makes all three the same — and then each card lays
+     itself out sideways, label left and number right, so the width it just
+     gained is actually used instead of standing empty beside a short word. */
+  .stat-row { grid-template-columns: 1fr; gap: .65rem; }
+  .stat {
+    display: grid;
+    grid-template-columns: minmax(0, 1fr) auto;
+    align-items: center;
+    column-gap: 1rem;
+    padding: .85rem 1.15rem;
+  }
+  .stat__label { grid-column: 1; grid-row: 1; }
+  .stat__note  { grid-column: 1; grid-row: 2; }
+  .stat__value { grid-column: 2; grid-row: 1 / span 2; }
   .stat__value { font-size: 1.25rem; }
   .summary { align-items: flex-start; }
   .summary__actions { width: 100%; justify-content: space-between; }
@@ -2393,14 +2466,15 @@ dialog.modal[open] { animation: pop .18s cubic-bezier(.22, .61, .36, 1); }
   }
   .tx__icon { grid-row: 1 / span 2; }
   .tx__body { grid-column: 2; grid-row: 1; }
-  .tx__amount { grid-column: 2; grid-row: 2; }
+  .tx__amount { grid-column: 2; grid-row: 2; font-size: 1.02rem; }
+  .tx__cat { font-size: .9rem; }
   .tx__tools { grid-column: 3; grid-row: 1 / span 2; }
 
   /* Six bars instead of twelve — the script does that part. These only make
      the labels fit the narrower bars. */
   .trend__plot { --plot: 128px; }
   .trend__bar { padding: 0 2px; }
-  .trend__tick { font-size: .66rem; padding: .15rem .3rem; }
+  .trend__tick { font-size: .72rem; padding: .15rem .3rem; }
 
   /* Taller rows and a shorter screen: at the desktop height the box would be
      nearly everything you can see, leaving almost nothing to grab to scroll
@@ -2415,21 +2489,29 @@ dialog.modal[open] { animation: pop .18s cubic-bezier(.22, .61, .36, 1); }
      heading above them. Nothing here shrinks text to fit — it stacks. */
   .tab { padding: .5rem .6rem .65rem; font-size: .92rem; }
 
-  .groups-head,
-  .group-head__row,
+  .group-head__row { flex-direction: column; align-items: stretch; }
+
+  /* The invitation stacks, but its two buttons keep their own width and sit
+     at the end of the row. Half the card each made "Join" the largest green
+     thing on the screen — larger than "New group", which is the same kind of
+     action — and weight is how a person tells which button matters. */
   .invite { flex-direction: column; align-items: stretch; }
-  .groups-head .btn { justify-content: center; }
+  .invite__tools { justify-content: flex-end; }
+
+  /* The heading goes above its button, but the button keeps its own width.
+     Stretched across the screen it became the loudest thing on the page —
+     louder than the groups themselves, which are the point of it — and it
+     stopped matching the identical action one tab over. */
+  .groups-head { flex-direction: column; align-items: flex-start; }
 
   /* A grid rather than two flexible buttons: flex sizes them from their own
      padding, and a quiet button and a solid one do not carry the same, so the
      pair came out visibly lopsided. Two equal columns cannot. */
-  .invite__tools,
   .group-head__tools {
     display: grid;
     grid-template-columns: 1fr 1fr;
     gap: .5rem;
   }
-  .invite__tools .btn,
   .group-head__tools .btn { justify-content: center; }
 
   .group-card { padding: .95rem 1rem; }

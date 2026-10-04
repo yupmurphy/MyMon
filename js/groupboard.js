@@ -18,6 +18,15 @@
   var ui = NS.ui;
   var groups = NS.groups;
 
+  /* The one shape every "make a new thing" button wears, here and on the
+     personal half. Three screens were offering the same action in three
+     different outfits — a pill on Personal, a bar across the width of the
+     group list, a small square inside a group — and a person learns the
+     shape long before they read the word. */
+  var PLUS =
+    '<svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.6" ' +
+      'stroke-linecap="round" aria-hidden="true"><path d="M12 5v14M5 12h14" /></svg>';
+
   /* Which group is open, or null while the list is showing. */
   var openId = null;
 
@@ -119,7 +128,7 @@
             'yours goes into one until you put it there.</p>' +
         '</div>' +
         '<button class="btn btn--primary" type="button" data-new-group>' +
-          'New group</button>' +
+          PLUS + 'New group</button>' +
       '</div>' +
       waiting.map(inviteHtml).join('') +
       (mine.length ? '<ul class="group-list">' + mine.map(cardHtml).join('') + '</ul>'
@@ -179,7 +188,8 @@
         '</div>' +
         '<h3>No groups yet</h3>' +
         '<p>Make one for a trip, a flat, or just to see what your friends spend.</p>' +
-        '<button class="btn btn--primary" type="button" data-new-group>New group</button>' +
+        '<button class="btn btn--primary" type="button" data-new-group>' +
+          PLUS + 'New group</button>' +
       '</div>';
   }
 
@@ -228,8 +238,8 @@
       '<section class="card">' +
         '<div class="card__head">' +
           '<h2 class="card__title">What we spent</h2>' +
-          '<button class="btn btn--primary btn--sm" type="button" data-add-entry="' +
-            esc(group.id) + '">Add</button>' +
+          '<button class="btn btn--primary" type="button" data-add-entry="' +
+            esc(group.id) + '">' + PLUS + 'Add expense</button>' +
         '</div>' +
         (entries.length
           ? '<div class="tx-scroll"><div class="tx-stack">' + daysHtml(entries) + '</div></div>'
