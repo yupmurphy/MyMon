@@ -184,6 +184,7 @@ window.MyMon = window.MyMon || {};
       ownerId: group.ownerId,
       createdAt: group.createdAt,
       iOwnIt: group.ownerId === me(),
+      myLastEntry: lastTouchedByMe(group.id),
       myState: myStateIn(group.id),
       people: members.filter(function (m) { return m.state === 'member'; }).length,
       invitees: members.filter(function (m) { return m.state === 'invited'; }).length,
@@ -191,13 +192,44 @@ window.MyMon = window.MyMon || {};
     };
   }
 
-  /* The groups you are actually in, oldest first — a list that does not
-     reshuffle itself every time somebody adds an expense. */
+  /* When you last put something into this group yourself. '' if never. */
+  function lastTouchedByMe(groupId) {
+    var mine = me();
+    var newest = '';
+
+    for (var i = 0; i < cache.entries.length; i++) {
+      var entry = cache.entries[i];
+      if (entry.groupId !== groupId || entry.userId !== mine) continue;
+      if ((entry.createdAt || '') > newest) newest = entry.createdAt || '';
+    }
+
+    return newest;
+  }
+
+  /* The groups you are actually in, the one you last spent from at the top.
+
+     Deliberately *your* last entry and not the group's — sorting by anybody's
+     activity would reshuffle the list under your finger every time somebody
+     else added forty lei, which is the thing the old fixed order was avoiding.
+     Keyed on your own doing, it only ever moves when you move it.
+
+     On when the entry was written rather than the day it covers, because the
+     question is which group you are living in at the moment: logging a receipt
+     from January today should lift that group, and it does. */
   function all() {
     return cache.groups
       .filter(function (g) { return myStateIn(g.id) === 'member'; })
       .map(decorate)
-      .sort(function (a, b) { return (a.createdAt || '') < (b.createdAt || '') ? -1 : 1; });
+      .sort(function (a, b) {
+        /* A group you have never written in falls back to when it was made, so
+           one you have only just joined starts near the top instead of at the
+           bottom where you would never see it. */
+        var mine = a.myLastEntry || a.createdAt || '';
+        var theirs = b.myLastEntry || b.createdAt || '';
+
+        if (mine !== theirs) return mine < theirs ? 1 : -1;
+        return (a.name || '') < (b.name || '') ? -1 : 1;   /* steady on a tie */
+      });
   }
 
   /* Invitations waiting on an answer. */
