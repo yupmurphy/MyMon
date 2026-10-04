@@ -125,6 +125,10 @@
         <button class="tab" type="button" role="tab" id="tab-groups"
                 data-tab="groups" aria-selected="false" aria-controls="panel-groups">Groups<span
                 class="tab__badge hidden" id="tab-groups-badge" aria-hidden="true">0</span></button>
+        <button class="tab" type="button" role="tab" id="tab-friends"
+                data-tab="friends" aria-selected="false"
+                aria-controls="panel-friends">Friends<span
+                class="tab__badge hidden" id="tab-friends-badge" aria-hidden="true">0</span></button>
       </div>
 
       <section class="panel" id="panel-personal" role="tabpanel" aria-labelledby="tab-personal">
@@ -286,6 +290,13 @@
       <section class="panel hidden" id="panel-groups" role="tabpanel" aria-labelledby="tab-groups">
         <div id="groups-view"></div>
       </section>
+
+      <!-- Friends. Painted whole by js/friendboard.js. Not money, but it is
+           what makes a group invitation a name you pick instead of a username
+           you have to remember — so it lives beside the thing it serves. -->
+      <section class="panel hidden" id="panel-friends" role="tabpanel" aria-labelledby="tab-friends">
+        <div id="friends-view"></div>
+      </section>
     </div>
   </main>
 
@@ -299,7 +310,7 @@
         <a href="index.html?stay=1" data-page="home">Home</a>
         <a href="about.html" data-page="about">About</a>
       </nav>
-      <p class="site-footer__meta">&copy; <span data-year>2026</span> MyMon &mdash; v1.2.4</p>
+      <p class="site-footer__meta">&copy; <span data-year>2026</span> MyMon &mdash; v1.3</p>
     </div>
   </footer>
 
@@ -499,8 +510,10 @@
   <script src="js/profile.js"></script>
   <script src="js/ui.js"></script>
   <script src="js/groups.js"></script>
+  <script src="js/friends.js"></script>
   <script src="js/notifications.js"></script>
   <script src="js/dashboard.js"></script>
   <script src="js/groupboard.js"></script>
+  <script src="js/friendboard.js"></script>
 </body>
 </html>

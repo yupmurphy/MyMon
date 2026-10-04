@@ -131,6 +131,8 @@ window.MyMon = window.MyMon || {};
     var actor = '<b>' + esc(who(row.actor_id)) + '</b>';
     var group = '<b>' + esc((row.groups && row.groups.name) || 'a group') + '</b>';
 
+    if (row.kind === 'friend_request')  return actor + ' wants to be <b>friends</b>';
+    if (row.kind === 'friend_accepted') return actor + ' and you are <b>friends</b> now';
     if (row.kind === 'group_invite') return actor + ' invited you to ' + group;
     if (row.kind === 'comment_on_mine') {
       return actor + ' commented on your <b>' + esc(entryName(row)) + '</b>';
@@ -140,6 +142,12 @@ window.MyMon = window.MyMon || {};
 
   /* Where the row takes you. A notification exists to be followed. */
   function destination(row) {
+    /* Both friend kinds land on the same list — one to answer the request,
+       one to see who just joined it. */
+    if (row.kind === 'friend_request' || row.kind === 'friend_accepted') {
+      return 'dashboard.html#friends';
+    }
+
     var hash = '#groups';
     if (row.group_id) hash += '/' + row.group_id;
     if (row.entry_id) hash += '/' + row.entry_id;

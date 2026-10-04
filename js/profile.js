@@ -47,7 +47,8 @@ window.MyMon = window.MyMon || {};
   function load() {
     return table()
       .select('username, first_name, last_name, created_at, ' +
-              'notify_group_invite, notify_group_comment, notify_comment_on_mine')
+              'notify_group_invite, notify_group_comment, notify_comment_on_mine, ' +
+              'notify_friend')
       .maybeSingle()
       .then(function (response) {
         if (response.error) throw response.error;

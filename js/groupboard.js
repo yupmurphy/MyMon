@@ -1,6 +1,6 @@
 /* MyMon — the Groups tab.
 
-   Owns the two tabs at the top of the dashboard and everything inside the
+   Owns the three tabs at the top of the dashboard and everything inside the
    second one: the list of groups, one group's ledger, the invitations, the
    comments, and the three dialogs that go with them. The personal half is
    js/dashboard.js and the two barely speak — the only words between them are
@@ -65,9 +65,13 @@
 
   /* The address carries three things at most: #groups, then the group to
      open, then the entry whose comments to unfold. That is what lets a
-     notification be followed to the exact thread it is about. */
+     notification be followed to the exact thread it is about. #friends has
+     nothing to carry — it is one list. */
+  var TABS = ['personal', 'groups', 'friends'];
+
   function fromHash() {
     var raw = window.location.hash.replace(/^#/, '');
+    if (raw.indexOf('friends') === 0) return { tab: 'friends' };
     if (raw.indexOf('groups') !== 0) return { tab: 'personal' };
 
     var bits = raw.split('/');
@@ -89,23 +93,27 @@
   }
 
   function showTab(name) {
-    var onGroups = name === 'groups';
+    TABS.forEach(function (one) {
+      var tab = byId('tab-' + one);
+      var panel = byId('panel-' + one);
+      if (!tab || !panel) return;
 
-    dom.tabPersonal.classList.toggle('is-on', !onGroups);
-    dom.tabGroups.classList.toggle('is-on', onGroups);
-    dom.tabPersonal.setAttribute('aria-selected', String(!onGroups));
-    dom.tabGroups.setAttribute('aria-selected', String(onGroups));
-    dom.panelPersonal.classList.toggle('hidden', onGroups);
-    dom.panelGroups.classList.toggle('hidden', !onGroups);
+      var on = one === name;
+      tab.classList.toggle('is-on', on);
+      tab.setAttribute('aria-selected', String(on));
+      panel.classList.toggle('hidden', !on);
+    });
 
-    if (onGroups) render();
+    if (name === 'groups') render();
+    if (name === 'friends' && NS.friendBoard) NS.friendBoard.refresh();
   }
 
   function goToTab(name) {
     /* Writing the hash fires hashchange, which is what actually switches the
-       tab — so there is one path in and not two that can disagree. */
-    if (name === 'groups') window.location.hash = '#groups';
-    else if (window.location.hash) window.location.hash = '';
+       tab — so there is one path in and not two that can disagree. Personal
+       is the default and so writes nothing. */
+    if (name !== 'personal') { window.location.hash = '#' + name; return; }
+    if (window.location.hash) window.location.hash = '';
     else showTab('personal');
   }
 
@@ -307,8 +315,48 @@
     }).join('') + '</ul>';
   }
 
+  /* Your friends who are not already in this group, as things to press.
+     This is what the friends list is *for* — the box below still takes a
+     username, because somebody you have not added yet has to be reachable,
+     but after the first time nobody should have to remember one. */
+  function friendPicksHtml(group) {
+    if (!NS.friends || !NS.friends.isLoaded()) return '';
+
+    var taken = {};
+    groups.membersOf(group.id).forEach(function (m) {
+      if (m.state === 'member' || m.state === 'invited') taken[m.userId] = true;
+    });
+
+    var free = NS.friends.all().filter(function (person) {
+      /* Without a username there is nothing to invite them by: the invite
+         function takes a name, not an id, on purpose. */
+      return !taken[person.id] && person.username;
+    });
+
+    if (!free.length) return '';
+
+    return '' +
+      '<div class="invite-picks">' +
+        '<p class="invite-row__label">Your friends</p>' +
+        '<ul class="people">' +
+          free.map(function (person) {
+            return '<li>' +
+              '<button class="person person--pick" type="button" ' +
+                      'data-invite-friend="' + esc(person.username) + '">' +
+                badgeHtml(person) +
+                '<span class="person__name">' + esc(person.title) + '</span>' +
+                '<svg class="person__add" viewBox="0 0 24 24" fill="none" ' +
+                     'stroke="currentColor" stroke-width="3" stroke-linecap="round" ' +
+                     'aria-hidden="true"><path d="M12 5v14M5 12h14" /></svg>' +
+              '</button></li>';
+          }).join('') +
+        '</ul>' +
+      '</div>';
+  }
+
   function inviteFormHtml(group) {
     return '' +
+      friendPicksHtml(group) +
       '<div class="invite-row">' +
         '<label class="invite-row__label" for="invite-name">Invite by username</label>' +
         /* The same @-in-front box the username field in Settings uses, so the
@@ -765,6 +813,19 @@
     }).catch(function (error) { fail('Could not delete it.', error); });
   }
 
+  /* A friend, pressed rather than typed. Same call underneath — the picker
+     is a shortcut to a username, not a second way in, so the database sees
+     one kind of invitation and the rules stay in one place. */
+  function inviteFriend(groupId, username) {
+    if (!groupId) return;
+
+    groups.invite(groupId, username).then(function (result) {
+      if (!result.ok) return ui.toast(result.error, { duration: 7000 });
+      render();
+      ui.toast('Asked. It is waiting on them now.');
+    }).catch(function (error) { fail('Could not invite them.', error); });
+  }
+
   function invite(groupId) {
     var field = dom.view.querySelector('[data-invite-field]');
     if (!field) return;
@@ -818,8 +879,10 @@
     if (wired) return;
     wired = true;
 
-    dom.tabPersonal.addEventListener('click', function () { goToTab('personal'); });
-    dom.tabGroups.addEventListener('click', function () { goToTab('groups'); });
+    TABS.forEach(function (one) {
+      var tab = byId('tab-' + one);
+      if (tab) tab.addEventListener('click', function () { goToTab(one); });
+    });
     window.addEventListener('hashchange', applyHash);
 
     /* One listener for the whole tab: everything in it is redrawn on every
@@ -844,6 +907,7 @@
       var renamed = hit('rename');        if (renamed) return openGroupDialog(renamed);
       var dropped = hit('delete-group');  if (dropped) return deleteGroup(dropped);
       var invited = hit('invite');        if (invited) return invite(invited);
+      var picked = hit('invite-friend');  if (picked) return inviteFriend(openId, picked);
       var kicked = hit('remove-member');  if (kicked) return removeMember(kicked);
       var adding = hit('add-entry');      if (adding) return openEntryDialog(adding, null);
       var edited = hit('edit-entry');     if (edited) return openEntryDialog(openId, edited);
@@ -906,11 +970,7 @@
 
   function start() {
     dom = {
-      tabPersonal: byId('tab-personal'),
-      tabGroups: byId('tab-groups'),
       badge: byId('tab-groups-badge'),
-      panelPersonal: byId('panel-personal'),
-      panelGroups: byId('panel-groups'),
       view: byId('groups-view'),
       groupDialog: byId('group-dialog'),
       groupForm: byId('group-form'),

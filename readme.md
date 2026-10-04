@@ -1,4 +1,4 @@
-# MyMon — v1.2.4
+# MyMon — v1.3
 
 MyMon is a simple personal expense tracker focused on clarity, not complexity.
 
@@ -41,12 +41,14 @@ js/config.js         which Supabase project to talk to
 js/session.js        signing in with Google, and who is signed in
 js/data.js           categories, validation, monthly statistics, database access
 js/groups.js         the same, for groups: members, group expenses, comments
+js/friends.js        the same, for friends: asking, answering, the list
 js/ui.js             money formatting, toasts, chart tooltips, header, theme button
 js/xlsx.js           writes the export file: a real .xlsx, not a .csv
 js/landing.js        landing page behaviour
 js/welcome.js        the first-run name and username page
 js/dashboard.js      the Personal tab
-js/groupboard.js     the two tabs, and everything inside the Groups one
+js/groupboard.js     the three tabs, and everything inside the Groups one
+js/friendboard.js    everything inside the Friends one
 js/settings.js       the settings page
 js/profile.js        the public half of an account: name, username, first-run check
 js/install.js        the install button, which differs per browser
@@ -122,7 +124,9 @@ opens the site. What protects the data is the Row Level Security from step 2. Th
 - **Landing page** — visible only to non-authenticated users
 - **Welcome** — once, after a first sign-in: your name, and the username people find
   you by. Skipped for good once it has been filled in.
-- **App / dashboard** — the default page after login, in two tabs
+- **App / dashboard** — the default page after login, in three tabs: **Personal**
+  (what you spent), **Groups** (what you spent together) and **Friends** (who you can
+  invite without typing a username)
 - **Settings** — three tabs, split by what you came to change:
   - **Profile** — the name MyMon greets you with, and the username people find you by
   - **Account** — the currency new expenses are written in, the Google account behind
@@ -206,13 +210,43 @@ right to read the group and write to it, and nothing else.
 You can change or delete your own entries at any time without leaving the group.
 
 Invitations are by username — you type `@someone`, and the `@` is already in the field
-so there is nothing to guess about the shape of it. A friends list, so there is nothing
-to type from memory at all, comes later.
+so there is nothing to guess about the shape of it. Your friends appear above that box
+as things to press, so after the first time there is nothing to remember.
 
 Every list the Groups tab shows is simply whatever the database was willing to answer
 with. Nothing in the JavaScript decides who may see or change anything; the rules live
 in `supabase/migrations/20261001145917_groups_and_comments.sql` and nowhere else. A
 button that is hidden is hidden because pressing it would be refused anyway.
+
+Your groups are ordered by the one **you** last spent from. Not by anybody's activity —
+that would reshuffle the list under your finger every time somebody else added forty
+lei. Keyed on your own doing, it only moves when you move it.
+
+## Friends
+
+A friends list exists for one reason: so that inviting somebody to a group is picking a
+name rather than remembering a username.
+
+You add somebody by username; they decide. Until they say yes, nothing of theirs is
+shown to you — not even their name. The other way round is not symmetric, and that is
+deliberate: **the person being asked can see who is asking**, because they have to know
+that before they can answer. The asker already knows the username, because they typed
+it, and a real name is the other person's to give.
+
+Underneath there is **one row per pair**, with the two account ids always stored in the
+same order. That makes the pair the primary key, so the database itself refuses a
+duplicate, and "are we already friends" and "did one of us already ask" become the same
+question with one answer. Two people pressing add in the same second cannot end up with
+two rows that each think they are the request.
+
+No browser can write a friendship. A request goes through a database function that takes
+a *username* and hands back a word, so the browser never learns an account id it did not
+already have. Accepting is an ordinary update, policed by a trigger: the identity of a
+row is frozen, accepted is a one-way door, and the person who asked is not allowed to be
+the person who answers. Declining, taking an unanswered request back, and unfriending
+are all the same act — the row should not exist — and either person may do it.
+
+The rules live in `supabase/migrations/20261004230000_friends.sql`.
 
 **Not in groups yet:** splitting a total per person ("what did this cost for X
 people"). It is coming as its own feature.
@@ -304,7 +338,6 @@ behind in the browser by v1 are offered for import the first time you sign in.
   something server-side to send from; on an iPhone, MyMon has to be on the home
   screen first
 - splitting a group total per person
-- a friends list, so inviting is not typing a username from memory
 - a monthly limit or budget
 - repeating an expense
 

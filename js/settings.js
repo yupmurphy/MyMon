@@ -362,6 +362,7 @@
      still for half a second, which reads as broken rather than as careful. */
 
   var NOTIFY = [
+    { id: 'notify-friend',  column: 'notify_friend' },
     { id: 'notify-invite',  column: 'notify_group_invite' },
     { id: 'notify-mine',    column: 'notify_comment_on_mine' },
     { id: 'notify-comment', column: 'notify_group_comment' }

@@ -848,6 +848,18 @@
     });
   }
 
+  /* The same bargain for friends: a database without the friends migration
+     leaves an empty tab, not a broken dashboard. */
+  function loadFriends() {
+    if (!NS.friends) return Promise.resolve(false);
+    return NS.friends.load().catch(function (error) {
+      if (window.console) {
+        window.console.warn('Friends are not available: ' + (error && error.message));
+      }
+      return false;
+    });
+  }
+
   function init() {
     dom = {
       greeting: byId('greeting'),
@@ -917,13 +929,14 @@
            hands back — reading it off the latter greeted everyone as
            'undefined'. */
         dom.greeting.textContent = greeting() + ', ' + session.get().name + '.';
-        return Promise.all([data.load(), loadGroups()]);
+        return Promise.all([data.load(), loadGroups(), loadFriends()]);
       })
       .then(function (loaded) {
         if (!loaded) return;
         document.body.classList.remove('booting');
         render();
         if (NS.groupBoard) NS.groupBoard.start();
+        if (NS.friendBoard) NS.friendBoard.start();
         offerLegacyImport();
       })
       .catch(function (error) {

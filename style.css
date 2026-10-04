@@ -1275,8 +1275,15 @@ html[data-session="out"] [data-when="signed-in"] { display: none !important; }
 .input-at input:focus,
 .input-at input:focus-visible { outline: none; box-shadow: none; }
 
-.card__hint[data-state="good"] { color: var(--brand-700); font-weight: 700; }
-.card__hint[data-state="bad"] { color: var(--danger); font-weight: 700; }
+/* A hint that is reporting an outcome rather than explaining a field. The
+   two classes are styled together because the state is the same idea in both
+   places, and the friends box wore .field__hint while only .card__hint was
+   being coloured — so a refusal came out the same grey as the instructions
+   above it, which is the one message that has to be impossible to miss. */
+.card__hint[data-state="good"],
+.field__hint[data-state="good"] { color: var(--brand-700); font-weight: 700; }
+.card__hint[data-state="bad"],
+.field__hint[data-state="bad"] { color: var(--danger); font-weight: 700; }
 
 .settings-pair {
   display: grid;
@@ -2166,6 +2173,42 @@ html[data-session="out"] [data-when="signed-in"] { display: none !important; }
   text-transform: lowercase;
 }
 .person--waiting .person__tag { background: var(--surface-sunken); }
+
+/* A person you can press, sitting directly under a list of people you cannot.
+   Hover alone could not carry that difference — there is no hover on a phone,
+   and a thing that looks exactly like a label and acts like a button is a
+   trap. So it takes the app's own colour for "this does something", and wears
+   a + for what it does. Green among grey, and legible without moving a mouse.
+
+   36px tall rather than the 30px a plain chip gets, because this one is a
+   target for a thumb. */
+.person--pick {
+  min-height: 36px;
+  border: 0;
+  font: inherit;
+  font-weight: 700;
+  font-size: .85rem;
+  cursor: pointer;
+  padding-right: .5rem;
+  background: var(--brand-050);
+  color: var(--brand-700);
+  transition: background-color .15s ease;
+}
+.person--pick .badge { background: var(--brand-600); }
+.person--pick:hover { background: var(--brand-100); }
+.person--pick:focus-visible { outline: none; box-shadow: var(--ring); }
+
+/* The + after the name. Drawn rather than typed, so it matches the one on
+   every other "add" in the app instead of being a plus-shaped character. */
+.person__add {
+  width: 15px; height: 15px;
+  flex: none;
+  opacity: .75;
+}
+
+/* The row of them, above the box you would otherwise have to type into. */
+.invite-picks { margin-top: 1.1rem; }
+.invite-picks .people { margin-top: .5rem; }
 
 .person__drop {
   width: 20px; height: 20px;
