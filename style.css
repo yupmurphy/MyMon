@@ -2101,13 +2101,20 @@ html[data-session="out"] [data-when="signed-in"] { display: none !important; }
 .group-head { margin-bottom: 1.5rem; }
 .group-head__row {
   display: flex;
-  align-items: flex-start;
-  justify-content: space-between;
+  align-items: baseline;
   gap: 1rem;
   flex-wrap: wrap;
 }
-.group-head__name { font-size: 1.3rem; margin: 0; }
-.group-head__tools { display: flex; gap: .4rem; flex: none; }
+
+/* The name takes whatever is left; min-width: 0 is what lets a long one wrap
+   instead of forcing the row wider than the card. */
+.group-head__name { font-size: 1.3rem; margin: 0; flex: 1 1 auto; min-width: 0; }
+
+/* margin-left rather than justify-content: space-between on the row. When the
+   name is long enough to take the whole line, space-between drops the tools to
+   the next line and then aligns them *left*, which is where "Leave" was ending
+   up. An auto margin keeps them at the end on their own line too. */
+.group-head__tools { display: flex; gap: .4rem; flex: none; margin-left: auto; }
 .group-head__sum {
   margin: .6rem 0 0;
   font-size: 1.9rem;
@@ -2747,7 +2754,6 @@ dialog.modal[open] { animation: pop .18s cubic-bezier(.22, .61, .36, 1); }
      heading above them. Nothing here shrinks text to fit — it stacks. */
   .tab { padding: .5rem .6rem .65rem; font-size: .92rem; }
 
-  .group-head__row { flex-direction: column; align-items: stretch; }
 
   /* The invitation stacks, but its two buttons keep their own width and sit
      at the end of the row. Half the card each made "Join" the largest green
@@ -2765,12 +2771,11 @@ dialog.modal[open] { animation: pop .18s cubic-bezier(.22, .61, .36, 1); }
   /* A grid rather than two flexible buttons: flex sizes them from their own
      padding, and a quiet button and a solid one do not carry the same, so the
      pair came out visibly lopsided. Two equal columns cannot. */
-  .group-head__tools {
-    display: grid;
-    grid-template-columns: 1fr 1fr;
-    gap: .5rem;
-  }
-  .group-head__tools .btn { justify-content: center; }
+  /* They stay beside the name on a phone too. Stacked under it they had
+     nothing to sit against, and the owner's two buttons were being split into
+     half-width cells — which left a member's single "Leave" filling the left
+     half and reading as floating in the middle of the card. */
+  .group-head__tools { gap: .5rem; }
 
   .group-card { padding: .95rem 1rem; }
   .group-card__sum { font-size: .95rem; }
