@@ -1,4 +1,4 @@
-# MyMon — v1.1.27
+# MyMon — v1.2.0
 
 MyMon is a simple personal expense tracker focused on clarity, not complexity.
 
@@ -82,6 +82,8 @@ What is in there now:
 | `groups_and_comments` | groups, members, group expenses, comments |
 | `lock_down_the_trigger_functions` | took the triggers off the public web API |
 | `name_on_the_profile` | first and last name, where a group can read them |
+| `pin_search_path_on_username_available` | the last function brought into line |
+| `notifications` | the bell: a table nobody's browser may write to |
 
 ## Connecting it to your own Supabase project
 

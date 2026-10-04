@@ -908,6 +908,9 @@
         if (!setUp) return null;
         ui.mountHeader({ page: 'dashboard' });
         ui.year();
+        /* The bell fetches its own rows and does not hold anything else up:
+           a bell that fails to load is an empty bell, not a broken page. */
+        NS.notifications.start();
         buildCategoryPicker();
         wire();
         /* The name is on the profile, not on the account object require()

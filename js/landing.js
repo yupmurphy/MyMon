@@ -67,6 +67,7 @@
       if (leaving) return;
 
       ui.mountHeader({ page: 'home' });
+      if (session.get()) NS.notifications.start();
 
       /* Now that the answer is certain, the guess in the head has nothing left
          to do — .hidden alone decides from here. */

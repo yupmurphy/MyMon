@@ -47,23 +47,61 @@
            page could be dragged sideways. -->
       <nav class="site-nav" aria-label="Main">
         <a href="dashboard.html" data-page="dashboard">Dashboard</a>
-        <a href="settings.html" data-page="settings">Settings</a>
       </nav>
 
-      <!-- Light or dark. With nothing chosen the stylesheet follows the
-           system setting on its own; this overrules it, per device. -->
-      <button class="theme-btn" type="button" data-theme-toggle
-              aria-label="Switch to the dark theme" title="Switch to the dark theme">
-        <svg class="theme-btn__moon" viewBox="0 0 24 24" fill="none" stroke="currentColor"
-             stroke-width="2.2" stroke-linecap="round" stroke-linejoin="round" aria-hidden="true">
-          <path d="M20.2 14.3A8.4 8.4 0 0 1 9.7 3.8a8.6 8.6 0 1 0 10.5 10.5z" />
-        </svg>
-        <svg class="theme-btn__sun" viewBox="0 0 24 24" fill="none" stroke="currentColor"
-             stroke-width="2.2" stroke-linecap="round" aria-hidden="true">
-          <circle cx="12" cy="12" r="4.1" />
-          <path d="M12 2.6v2.1M12 19.3v2.1M2.6 12h2.1M19.3 12h2.1M5.3 5.3l1.5 1.5M17.2 17.2l1.5 1.5M18.7 5.3l-1.5 1.5M6.8 17.2l-1.5 1.5" />
-        </svg>
-      </button>
+      <div class="header-tools">
+        <!-- The bell, and the panel that hangs off it. It is anchored to this
+             button rather than to the page, so it drops from the corner you
+             pressed instead of arriving from the bottom of the screen.
+             js/notifications.js fills the panel. -->
+        <div class="bell" data-when="signed-in">
+          <button class="hdr-btn" type="button" id="bell-btn" aria-haspopup="true"
+                  aria-expanded="false" aria-controls="bell-panel"
+                  aria-label="Notifications" title="Notifications">
+            <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.2"
+                 stroke-linecap="round" stroke-linejoin="round" aria-hidden="true">
+              <path d="M18 8.4a6 6 0 1 0-12 0c0 6.2-2.3 7.8-2.3 7.8h16.6S18 14.6 18 8.4z" />
+              <path d="M13.8 19.8a2.1 2.1 0 0 1-3.6 0" />
+            </svg>
+            <span class="bell__count hidden" id="bell-count" aria-hidden="true">0</span>
+          </button>
+        </div>
+
+        <!-- Outside .bell on purpose. Anchored to the bell it would have
+             lined its right edge up with the bell, which is not the last
+             button in the row — on a 375px phone that pushed 59px of the
+             panel off the left of the screen. Anchored to the group, its
+             right edge is the page gutter at every width. -->
+        <div class="bell__panel hidden" id="bell-panel" role="dialog"
+             aria-label="Notifications"></div>
+
+        <!-- Settings wears an icon now rather than its name. The word and the
+             bell together did not fit the header on a 375px phone, and of the
+             two, "Settings" is the one a cog says just as well. -->
+        <a class="hdr-btn" href="settings.html" data-page="settings"
+           aria-label="Settings" title="Settings">
+          <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.1"
+               stroke-linecap="round" stroke-linejoin="round" aria-hidden="true">
+            <path d="M10.4 3.4a1.5 1.5 0 0 1 1.5-1.3h.2a1.5 1.5 0 0 1 1.5 1.3l.13 1a7.4 7.4 0 0 1 1.63.94l.94-.4a1.5 1.5 0 0 1 1.85.63l.1.17a1.5 1.5 0 0 1-.35 1.92l-.8.64a7.4 7.4 0 0 1 0 1.88l.8.64a1.5 1.5 0 0 1 .35 1.92l-.1.17a1.5 1.5 0 0 1-1.85.63l-.94-.4a7.4 7.4 0 0 1-1.63.94l-.13 1a1.5 1.5 0 0 1-1.5 1.3h-.2a1.5 1.5 0 0 1-1.5-1.3l-.13-1a7.4 7.4 0 0 1-1.63-.94l-.94.4a1.5 1.5 0 0 1-1.85-.63l-.1-.17a1.5 1.5 0 0 1 .35-1.92l.8-.64a7.4 7.4 0 0 1 0-1.88l-.8-.64a1.5 1.5 0 0 1-.35-1.92l.1-.17a1.5 1.5 0 0 1 1.85-.63l.94.4a7.4 7.4 0 0 1 1.63-.94z" />
+            <circle cx="12" cy="12" r="2.7" />
+          </svg>
+        </a>
+
+        <!-- Light or dark. With nothing chosen the stylesheet follows the
+             system setting on its own; this overrules it, per device. -->
+        <button class="hdr-btn theme-btn" type="button" data-theme-toggle
+                aria-label="Switch to the dark theme" title="Switch to the dark theme">
+          <svg class="theme-btn__moon" viewBox="0 0 24 24" fill="none" stroke="currentColor"
+               stroke-width="2.2" stroke-linecap="round" stroke-linejoin="round" aria-hidden="true">
+            <path d="M20.2 14.3A8.4 8.4 0 0 1 9.7 3.8a8.6 8.6 0 1 0 10.5 10.5z" />
+          </svg>
+          <svg class="theme-btn__sun" viewBox="0 0 24 24" fill="none" stroke="currentColor"
+               stroke-width="2.2" stroke-linecap="round" aria-hidden="true">
+            <circle cx="12" cy="12" r="4.1" />
+            <path d="M12 2.6v2.1M12 19.3v2.1M2.6 12h2.1M19.3 12h2.1M5.3 5.3l1.5 1.5M17.2 17.2l1.5 1.5M18.7 5.3l-1.5 1.5M6.8 17.2l-1.5 1.5" />
+          </svg>
+        </button>
+      </div>
     </div>
   </header>
 
@@ -219,7 +257,7 @@
         <a href="index.html?stay=1" data-page="home">Home</a>
         <a href="about.html" data-page="about">About</a>
       </nav>
-      <p class="site-footer__meta">&copy; <span data-year>2026</span> MyMon &mdash; v1.1.27</p>
+      <p class="site-footer__meta">&copy; <span data-year>2026</span> MyMon &mdash; v1.2.0</p>
     </div>
   </footer>
 
@@ -231,6 +269,7 @@
   <script src="js/data.js"></script>
   <script src="js/profile.js"></script>
   <script src="js/ui.js"></script>
+  <script src="js/notifications.js"></script>
   <script src="js/xlsx.js"></script>
   <script src="js/settings.js"></script>
 </body>

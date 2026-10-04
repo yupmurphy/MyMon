@@ -63,8 +63,29 @@
      Which tab you are on is kept in the address rather than in a variable, so
      reloading, going back, and sending somebody the link all behave. */
 
-  function tabFromHash() {
-    return window.location.hash.indexOf('#groups') === 0 ? 'groups' : 'personal';
+  /* The address carries three things at most: #groups, then the group to
+     open, then the entry whose comments to unfold. That is what lets a
+     notification be followed to the exact thread it is about. */
+  function fromHash() {
+    var raw = window.location.hash.replace(/^#/, '');
+    if (raw.indexOf('groups') !== 0) return { tab: 'personal' };
+
+    var bits = raw.split('/');
+    return { tab: 'groups', groupId: bits[1] || null, entryId: bits[2] || null };
+  }
+
+  /* Only a hash that names a group moves what is open. Clicking a group card
+     does not write the address, so a plain '#groups' must leave the view where
+     the person put it rather than closing it under them. */
+  function applyHash() {
+    var at = fromHash();
+
+    if (at.groupId) {
+      openId = at.groupId;
+      openThread = at.entryId || null;
+    }
+
+    showTab(at.tab);
   }
 
   function showTab(name) {
@@ -799,7 +820,7 @@
 
     dom.tabPersonal.addEventListener('click', function () { goToTab('personal'); });
     dom.tabGroups.addEventListener('click', function () { goToTab('groups'); });
-    window.addEventListener('hashchange', function () { showTab(tabFromHash()); });
+    window.addEventListener('hashchange', applyHash);
 
     /* One listener for the whole tab: everything in it is redrawn on every
        change, so wiring each button would mean wiring them all again. */
@@ -910,7 +931,7 @@
 
     buildCategories();
     wire();
-    showTab(tabFromHash());
+    applyHash();
     render();
   }
 

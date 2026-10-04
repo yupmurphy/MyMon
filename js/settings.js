@@ -337,6 +337,7 @@
       .then(function (signedIn) {
         if (!signedIn) return null;
         ui.mountHeader({ page: 'settings' });
+        NS.notifications.start();
         ui.year();
 
         dom.first.value = user.firstName;

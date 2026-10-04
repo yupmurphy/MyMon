@@ -468,7 +468,22 @@ html[data-session="out"] [data-when="signed-in"] { display: none !important; }
   min-height: 68px;
 }
 
-.theme-btn {
+/* The three round buttons at the end of the header: the bell, settings and
+   the theme. Grouped, and set apart from the nav, so the bar reads as "where
+   you can go" and then "things you can do" rather than as four equal items. */
+.header-tools {
+  position: relative;      /* the notification panel hangs off this, not off the bell */
+  display: flex;
+  align-items: center;
+  gap: .1rem;
+  flex: none;
+}
+
+/* Settings lost its word and became a cog. The word plus a bell did not fit
+   the header on a 375px phone, and between the two the cog is the one that
+   says the same thing without being read. Both the <a> and the <button> wear
+   this, so they have to be told not to look like a link. */
+.hdr-btn {
   width: 36px; height: 36px;
   flex: none;
   display: grid;
@@ -477,12 +492,18 @@ html[data-session="out"] [data-when="signed-in"] { display: none !important; }
   background: none;
   border-radius: 50%;
   color: var(--ink-500);
+  text-decoration: none;
   cursor: pointer;
   transition: background-color .15s ease, color .15s ease;
 }
-.theme-btn:hover { background: var(--surface-sunken); color: var(--ink-900); }
-.theme-btn:focus-visible { outline: none; box-shadow: var(--ring); }
-.theme-btn svg { width: 19px; height: 19px; }
+.hdr-btn:hover { background: var(--surface-sunken); color: var(--ink-900); }
+.hdr-btn:focus-visible { outline: none; box-shadow: var(--ring); }
+.hdr-btn svg { width: 19px; height: 19px; }
+
+/* The cog marks the page you are on the same way the words beside it do. */
+.hdr-btn[aria-current="page"] { background: var(--brand-100); color: var(--brand-700); }
+
+.theme-btn { position: relative; }
 
 /* It shows where it takes you: a moon while the page is light, a sun while it
    is dark. The moon is the default, so the button is never an empty circle in
@@ -490,6 +511,104 @@ html[data-session="out"] [data-when="signed-in"] { display: none !important; }
 .theme-btn__sun { display: none; }
 .theme-btn[data-theme-state="dark"] .theme-btn__moon { display: none; }
 .theme-btn[data-theme-state="dark"] .theme-btn__sun { display: block; }
+
+/* ---------- 5c. The bell ----------
+   The panel hangs off the button, not off the page. On a phone it still drops
+   from the corner you pressed — it only grows to the width of the screen —
+   because a sheet rising from the bottom would have no visible relationship to
+   the thing that opened it. */
+.bell { position: relative; display: flex; }
+
+/* The same shape the Groups tab already uses for its count, on purpose: one
+   language for "there are this many waiting for you". */
+.bell__count {
+  position: absolute;
+  top: 1px;
+  right: 0;
+  min-width: 17px;
+  height: 17px;
+  padding: 0 4px;
+  display: grid;
+  place-items: center;
+  border-radius: var(--r-pill);
+  background: var(--brand-600);
+  color: #fff;
+  font-size: .68rem;
+  font-weight: 800;
+  font-variant-numeric: tabular-nums;
+  /* A ring in the header's own colour, so the badge reads as sitting on top
+     of the bell rather than welded to it. */
+  box-shadow: 0 0 0 2px var(--surface-glass);
+}
+
+.bell__panel {
+  position: absolute;
+  top: calc(100% + .55rem);
+  right: 0;
+  z-index: 60;
+  width: min(23rem, calc(100vw - 2 * var(--gutter)));
+  max-height: min(26rem, 70vh);
+  overflow-y: auto;
+  overscroll-behavior: contain;
+  background: var(--surface);
+  border: 1px solid var(--line);
+  border-radius: var(--r-md);
+  box-shadow: var(--shadow-lg);
+}
+
+.bell__head {
+  position: sticky;
+  top: 0;
+  z-index: 1;
+  display: flex;
+  align-items: center;
+  justify-content: space-between;
+  gap: 1rem;
+  padding: .8rem 1rem .7rem;
+  background: var(--surface);
+  border-bottom: 1px solid var(--line);
+}
+.bell__title { margin: 0; font-size: .95rem; font-weight: 800; color: var(--ink-900); }
+
+.bell__list { list-style: none; margin: 0; padding: .35rem; display: grid; gap: .1rem; }
+
+/* One row is one button: the whole thing is the target, because a notification
+   has exactly one thing it wants you to do — go and look at it. */
+.note-row {
+  width: 100%;
+  display: grid;
+  grid-template-columns: auto minmax(0, 1fr) auto;
+  align-items: start;
+  gap: .7rem;
+  padding: .7rem .75rem;
+  border: 0;
+  background: none;
+  border-radius: var(--r-sm);
+  text-align: left;
+  font: inherit;
+  cursor: pointer;
+  transition: background-color .15s ease;
+}
+.note-row:hover { background: var(--surface-sunken); }
+.note-row:focus-visible { outline: none; box-shadow: var(--ring); }
+
+.note-row__text { min-width: 0; font-size: .9rem; line-height: 1.45; color: var(--ink-700); }
+.note-row__text b { color: var(--ink-900); font-weight: 800; }
+.note-row__when { display: block; margin-top: .15rem; font-size: .78rem; color: var(--ink-400); }
+
+/* Unread is a dot rather than a background wash: the row is already a hover
+   target, and two kinds of highlight on one row fight each other.
+   It lives in a column of its own. Hung off the bold words instead, it
+   appeared once per bold word — and a sentence has two, the person and the
+   group, so every unread row grew two dots. */
+.note-row__dot {
+  width: 7px; height: 7px;
+  margin-top: .42rem;
+  border-radius: 50%;
+  background: var(--brand-600);
+}
+
+.bell__empty { padding: 2rem 1rem; text-align: center; color: var(--ink-500); font-size: .9rem; }
 
 .brand { display: inline-flex; align-items: center; }
 /* The wordmark is type, not a picture. It is set in the same Nunito as the
