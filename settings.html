@@ -110,139 +110,252 @@
       <p class="eyebrow">Your account</p>
       <h1>Settings</h1>
 
-      <form class="card" id="name-form" novalidate style="margin-top: 2rem">
-        <div class="card__head">
-          <h2 class="card__title">What should MyMon call you?</h2>
-        </div>
+      <!-- Three tabs rather than five cards in one long column. The split is
+           by what you came here to change: who you are, how the app works for
+           you, and what it is allowed to interrupt you about. The same
+           underline tabs the dashboard uses — one component, one meaning. -->
+      <div class="tabs tabs--settings" role="tablist" aria-label="Settings">
+        <button class="tab is-on" type="button" role="tab" id="tab-profile"
+                data-stab="profile" aria-selected="true"
+                aria-controls="panel-profile">Profile</button>
+        <button class="tab" type="button" role="tab" id="tab-account"
+                data-stab="account" aria-selected="false"
+                aria-controls="panel-account">Account</button>
+        <button class="tab" type="button" role="tab" id="tab-notifications"
+                data-stab="notifications" aria-selected="false"
+                aria-controls="panel-notifications">Notifications</button>
+      </div>
 
-        <div class="settings-pair">
-          <div class="field" data-field="first">
-            <label for="field-first">First name</label>
-            <input class="input" id="field-first" type="text" maxlength="40"
-                   autocomplete="given-name" />
+      <!-- 1. Who you are: the name MyMon greets you with, and the handle
+              other people will find you by. -->
+      <section class="panel settings-stack" id="panel-profile" role="tabpanel"
+               aria-labelledby="tab-profile">
+        <form class="card" id="name-form" novalidate>
+          <div class="card__head">
+            <h2 class="card__title">What should MyMon call you?</h2>
+          </div>
+
+          <div class="settings-pair">
+            <div class="field" data-field="first">
+              <label for="field-first">First name</label>
+              <input class="input" id="field-first" type="text" maxlength="40"
+                     autocomplete="given-name" />
+              <p class="field__error"></p>
+            </div>
+
+            <div class="field" data-field="last">
+              <label for="field-last">Last name</label>
+              <input class="input" id="field-last" type="text" maxlength="40"
+                     autocomplete="family-name" />
+              <p class="field__error"></p>
+            </div>
+          </div>
+
+          <p class="card__hint" style="white-space: normal" id="name-hint"></p>
+
+          <div class="settings-actions">
+            <button class="btn btn--primary" type="submit" id="name-save">Save</button>
+            <button class="btn btn--quiet hidden" type="button" id="name-reset">
+              Use my Google name
+            </button>
+          </div>
+        </form>
+
+        <form class="card" id="username-form" novalidate>
+          <div class="card__head">
+            <h2 class="card__title">Your username</h2>
+          </div>
+
+          <!-- The explanation moved above the field. It used to sit under the
+               Save button, where it answered a question you had already had
+               to guess the answer to. -->
+          <p class="muted" style="margin-top: -.2rem; font-size: .92rem">
+            Unlike your name above, a username belongs to one person only. It is how
+            friends will find you once MyMon learns about friends.
+          </p>
+
+          <div class="field" data-field="username" style="margin-top: 1rem">
+            <label for="field-username">Username</label>
+            <div class="input-at">
+              <span aria-hidden="true">@</span>
+              <input id="field-username" type="text" maxlength="20" spellcheck="false"
+                     autocapitalize="none" autocomplete="off" placeholder="victor" />
+            </div>
             <p class="field__error"></p>
           </div>
 
-          <div class="field" data-field="last">
-            <label for="field-last">Last name</label>
-            <input class="input" id="field-last" type="text" maxlength="40"
-                   autocomplete="family-name" />
-            <p class="field__error"></p>
+          <p class="card__hint" style="white-space: normal" id="username-status" aria-live="polite">
+            Three to twenty characters. Letters, numbers and underscores, starting with a letter.
+          </p>
+
+          <div class="settings-actions">
+            <button class="btn btn--primary" type="submit" id="username-save">Save</button>
           </div>
-        </div>
-
-        <p class="card__hint" style="white-space: normal" id="name-hint"></p>
-
-        <div class="settings-actions">
-          <button class="btn btn--primary" type="submit" id="name-save">Save</button>
-          <button class="btn btn--quiet hidden" type="button" id="name-reset">
-            Use my Google name
-          </button>
-        </div>
-      </form>
-
-      <form class="card" id="username-form" novalidate style="margin-top: 1.25rem">
-        <div class="card__head">
-          <h2 class="card__title">Your username</h2>
-        </div>
-
-        <div class="field" data-field="username">
-          <label for="field-username">Username</label>
-          <div class="input-at">
-            <span aria-hidden="true">@</span>
-            <input id="field-username" type="text" maxlength="20" spellcheck="false"
-                   autocapitalize="none" autocomplete="off" placeholder="victor" />
-          </div>
-          <p class="field__error"></p>
-        </div>
-
-        <p class="card__hint" style="white-space: normal" id="username-status" aria-live="polite">
-          Three to twenty characters. Letters, numbers and underscores, starting with a letter.
-        </p>
-
-        <div class="settings-actions">
-          <button class="btn btn--primary" type="submit" id="username-save">Save</button>
-        </div>
-
-        <p class="muted" style="margin-top: 1rem; margin-bottom: 0; font-size: .9rem">
-          Unlike your name above, a username belongs to one person only. It is how friends
-          will find you once MyMon learns about friends.
-        </p>
-      </form>
-
-      <form class="card" id="currency-form" novalidate style="margin-top: 1.25rem">
-        <div class="card__head">
-          <h2 class="card__title">Currency</h2>
-        </div>
-
-        <div class="field">
-          <label for="field-currency">New expenses are recorded in</label>
-          <select class="input" id="field-currency"></select>
-        </div>
-
-        <p class="card__hint" style="white-space: normal" id="currency-preview"></p>
-
-        <div class="settings-actions">
-          <button class="btn btn--primary" type="submit" id="currency-save">Save</button>
-        </div>
-
-        <p class="muted" style="margin-top: 1rem; margin-bottom: 0">
-          Every expense keeps the currency it was logged in. Changing this affects
-          what you add from now on — 800 lei spent last week stay 800 lei, because
-          that is what they were. A month holding two currencies shows two totals,
-          side by side; MyMon never converts one into the other.
-        </p>
-      </form>
-
-      <section class="card" style="margin-top: 1.25rem">
-        <div class="card__head">
-          <h2 class="card__title">How you sign in</h2>
-        </div>
-        <div class="settings-row">
-          <span class="settings-row__label">Google account</span>
-          <span class="settings-row__value num" id="account-email">&mdash;</span>
-        </div>
-        <p class="muted" style="margin-top: 1rem">
-          Your email comes from Google and cannot be changed here. MyMon never sees,
-          asks for or stores a password.
-        </p>
-
-        <!-- It used to sit in the header of every page, where it is the one
-             button you almost never want and the easiest to hit by accident.
-             This is the card about signing in, so it belongs here. -->
-        <div class="settings-actions">
-          <button class="btn btn--ghost" type="button" id="sign-out">Sign out</button>
-        </div>
+        </form>
       </section>
 
-      <section class="card" style="margin-top: 1.25rem">
-        <div class="card__head">
-          <h2 class="card__title">Your expenses</h2>
-        </div>
-        <div class="settings-row">
-          <span class="settings-row__label">Logged so far</span>
-          <span class="settings-row__value num" id="account-count">&mdash;</span>
-        </div>
-        <div class="settings-row">
-          <span class="settings-row__label">First one</span>
-          <span class="settings-row__value num" id="account-since">&mdash;</span>
-        </div>
-        <p class="muted" style="margin-top: 1rem">
-          Stored under your account, not in this browser. Signing out on one device
-          leaves everything untouched on the others.
-        </p>
+      <!-- 2. The rest: the currency new expenses are written in, the Google
+              account behind all of it, and the way your data gets out. -->
+      <section class="panel settings-stack hidden" id="panel-account" role="tabpanel"
+               aria-labelledby="tab-account">
+        <form class="card" id="currency-form" novalidate>
+          <div class="card__head">
+            <h2 class="card__title">Currency</h2>
+          </div>
 
-        <!-- All of it sits in one database, behind one account. That is fine
-             until it is not, and months of expenses cannot be typed back in
-             from memory. This is the copy that lives somewhere else. -->
-        <div class="settings-actions">
-          <button class="btn btn--ghost" type="button" id="export-xlsx">Download a copy</button>
-          <button class="btn btn--quiet" type="button" id="export-csv">or as plain .csv</button>
-        </div>
-        <p class="card__hint" style="white-space: normal; margin-top: .7rem">
-          A spreadsheet with real columns, sized and sortable &mdash; opens in Excel,
-          Numbers or Google Sheets.
-        </p>
+          <p class="muted" style="margin-top: -.2rem; font-size: .92rem">
+            Every expense keeps the currency it was logged in. Changing this affects
+            what you add from now on &mdash; 800 lei spent last week stay 800 lei, because
+            that is what they were. A month holding two currencies shows two totals,
+            side by side; MyMon never converts one into the other.
+          </p>
+
+          <div class="field" style="margin-top: 1rem">
+            <label for="field-currency">New expenses are recorded in</label>
+            <select class="input" id="field-currency"></select>
+          </div>
+
+          <p class="card__hint" style="white-space: normal" id="currency-preview"></p>
+
+          <div class="settings-actions">
+            <button class="btn btn--primary" type="submit" id="currency-save">Save</button>
+          </div>
+        </form>
+
+        <section class="card">
+          <div class="card__head">
+            <h2 class="card__title">How you sign in</h2>
+          </div>
+          <div class="settings-row">
+            <span class="settings-row__label">Google account</span>
+            <span class="settings-row__value num" id="account-email">&mdash;</span>
+          </div>
+          <p class="muted" style="margin-top: 1rem">
+            Your email comes from Google and cannot be changed here. MyMon never sees,
+            asks for or stores a password.
+          </p>
+
+          <!-- It used to sit in the header of every page, where it is the one
+               button you almost never want and the easiest to hit by accident.
+               This is the card about signing in, so it belongs here. -->
+          <div class="settings-actions">
+            <button class="btn btn--ghost" type="button" id="sign-out">Sign out</button>
+          </div>
+        </section>
+
+        <section class="card">
+          <div class="card__head">
+            <h2 class="card__title">Your expenses</h2>
+          </div>
+          <div class="settings-row">
+            <span class="settings-row__label">Logged so far</span>
+            <span class="settings-row__value num" id="account-count">&mdash;</span>
+          </div>
+          <div class="settings-row">
+            <span class="settings-row__label">First one</span>
+            <span class="settings-row__value num" id="account-since">&mdash;</span>
+          </div>
+          <p class="muted" style="margin-top: 1rem">
+            Stored under your account, not in this browser. Signing out on one device
+            leaves everything untouched on the others.
+          </p>
+
+          <!-- All of it sits in one database, behind one account. That is fine
+               until it is not, and months of expenses cannot be typed back in
+               from memory. This is the copy that lives somewhere else. -->
+          <p class="card__hint" style="white-space: normal; margin-top: 1rem">
+            A spreadsheet with real columns, sized and sortable &mdash; opens in Excel,
+            Numbers or Google Sheets.
+          </p>
+          <div class="settings-actions">
+            <button class="btn btn--ghost" type="button" id="export-xlsx">Download a copy</button>
+            <button class="btn btn--quiet" type="button" id="export-csv">or as plain .csv</button>
+          </div>
+        </section>
+      </section>
+
+      <!-- 3. What is allowed to interrupt you. No Save button in here on
+              purpose: a switch that needs confirming is a switch that lies
+              about its own position. Each one writes as you press it. -->
+      <section class="panel settings-stack hidden" id="panel-notifications" role="tabpanel"
+               aria-labelledby="tab-notifications">
+        <section class="card">
+          <div class="card__head">
+            <h2 class="card__title">What rings the bell</h2>
+          </div>
+
+          <p class="muted" style="margin-top: -.2rem">
+            The bell sits in the top corner of every page. These choices are kept with
+            your account rather than in this browser, so they hold on every device you
+            sign in on.
+          </p>
+
+          <div style="margin-top: .7rem">
+            <div class="switch-row">
+              <div>
+                <p class="switch-row__name">You are invited to a group</p>
+                <p class="switch-row__why">
+                  Somebody asks you to share a group with them. With this off the
+                  invitation still waits for you under Groups &mdash; you just will not
+                  be told the moment it arrives.
+                </p>
+              </div>
+              <label class="switch">
+                <input type="checkbox" id="notify-invite"
+                       aria-label="Tell me when I am invited to a group" />
+                <span class="switch__track"></span>
+              </label>
+            </div>
+
+            <div class="switch-row">
+              <div>
+                <p class="switch-row__name">Somebody comments on your expense</p>
+                <p class="switch-row__why">
+                  One of your own entries in a shared group gets a reply. This is the
+                  one worth keeping on &mdash; it is usually a question about something
+                  you wrote down.
+                </p>
+              </div>
+              <label class="switch">
+                <input type="checkbox" id="notify-mine"
+                       aria-label="Tell me when somebody comments on my expense" />
+                <span class="switch__track"></span>
+              </label>
+            </div>
+
+            <div class="switch-row">
+              <div>
+                <p class="switch-row__name">Any comment in your groups</p>
+                <p class="switch-row__why">
+                  Every reply in a group you are in, not only the ones about your own
+                  entries. The chattiest of the three, and the first to turn off if the
+                  bell starts ringing too often.
+                </p>
+              </div>
+              <label class="switch">
+                <input type="checkbox" id="notify-comment"
+                       aria-label="Tell me about any comment in my groups" />
+                <span class="switch__track"></span>
+              </label>
+            </div>
+          </div>
+
+          <p class="card__hint" style="white-space: normal; margin-top: 1.1rem"
+             id="notify-status" aria-live="polite"></p>
+        </section>
+
+        <section class="card">
+          <div class="card__head">
+            <h2 class="card__title">On your phone</h2>
+          </div>
+          <p class="muted" style="margin-bottom: 0">
+            Not yet. The switches above decide what reaches the bell; making a phone
+            ring while MyMon is closed needs a piece that is not built &mdash; something
+            on the server side to do the ringing, and on an iPhone, MyMon added to the
+            home screen first. It is on the list, so if your phone stays quiet it is
+            not a setting you have missed.
+          </p>
+        </section>
       </section>
     </div>
   </main>
@@ -257,7 +370,7 @@
         <a href="index.html?stay=1" data-page="home">Home</a>
         <a href="about.html" data-page="about">About</a>
       </nav>
-      <p class="site-footer__meta">&copy; <span data-year>2026</span> MyMon &mdash; v1.2.0</p>
+      <p class="site-footer__meta">&copy; <span data-year>2026</span> MyMon &mdash; v1.2.1</p>
     </div>
   </footer>
 

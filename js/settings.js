@@ -1,6 +1,11 @@
 /* MyMon — settings.
-   Small page, one job: let someone choose the name MyMon greets them with.
-   The name is stored on the account, so it follows them to any device. */
+   Three tabs over one page. Profile is who you are, Account is how the app
+   works for you, Notifications is what it may interrupt you about. Which tab
+   you are on lives in the address rather than in a variable here, so
+   reloading stays put and a link can point at one.
+
+   Everything on this page is stored on the account, not in this browser, so
+   it follows you to any device you sign in on. */
 (function (NS) {
   'use strict';
 
@@ -24,6 +29,47 @@
   function clearErrors() {
     setFieldError('first', '');
     setFieldError('last', '');
+  }
+
+  /* ---------- the three tabs ---------------------------------------------- */
+
+  var TABS = ['profile', 'account', 'notifications'];
+
+  function fromHash() {
+    var raw = window.location.hash.replace(/^#/, '');
+    return TABS.indexOf(raw) === -1 ? 'profile' : raw;
+  }
+
+  function showTab(name) {
+    TABS.forEach(function (one) {
+      var tab = byId('tab-' + one);
+      var panel = byId('panel-' + one);
+      if (!tab || !panel) return;
+
+      var on = one === name;
+      tab.classList.toggle('is-on', on);
+      tab.setAttribute('aria-selected', String(on));
+      panel.classList.toggle('hidden', !on);
+    });
+  }
+
+  function wireTabs() {
+    TABS.forEach(function (one) {
+      var tab = byId('tab-' + one);
+      if (!tab) return;
+
+      tab.addEventListener('click', function () {
+        /* Writing the hash is what switches the tab, by way of hashchange
+           below — one path in, so the address and the page cannot disagree.
+           Profile is the default and so writes nothing. */
+        if (one !== 'profile') { window.location.hash = '#' + one; return; }
+        if (window.location.hash) window.location.hash = '';
+        else showTab('profile');
+      });
+    });
+
+    window.addEventListener('hashchange', function () { showTab(fromHash()); });
+    showTab(fromHash());
   }
 
   /* Says which name is in use and where it came from. */
@@ -284,18 +330,97 @@
     });
   }
 
-  function loadUsername() {
+  /* One row, two tabs: the username in Profile and the three switches in
+     Notifications are columns of the same profile, so they are fetched
+     together rather than once each. */
+  function loadProfile() {
     return NS.profile.load().then(function (row) {
       claimed = row ? row.username : null;
       if (claimed) {
         dom.username.value = claimed;
         setStatus('Your username is @' + claimed + '.', 'good');
       }
+      fillNotify(row);
     }).catch(function (error) {
       /* Most likely the profiles table has not been created yet. */
       setStatus('Usernames are not set up on this project yet.', 'bad');
       dom.userSave.disabled = true;
+      stopNotify('These cannot be read right now.');
       if (window.console) window.console.warn('profiles:', error && error.message);
+    });
+  }
+
+  /* ---------- what rings the bell ------------------------------------------
+
+     No Save button in this tab on purpose: the switch is the answer, so
+     pressing it is what saves it. Three identical green buttons in a column,
+     each with its explanation stranded underneath, was the old shape of this
+     page and the thing most worth losing.
+
+     The box moves the instant you press it — the browser does that — and is
+     put back only if the write fails. The alternative is a switch that sits
+     still for half a second, which reads as broken rather than as careful. */
+
+  var NOTIFY = [
+    { id: 'notify-invite',  column: 'notify_group_invite' },
+    { id: 'notify-mine',    column: 'notify_comment_on_mine' },
+    { id: 'notify-comment', column: 'notify_group_comment' }
+  ];
+
+  var notifyTurn = 0;       /* so three quick presses do not argue over one line */
+
+  function setNotifyStatus(text, state) {
+    if (!dom.notifyStatus) return;
+    dom.notifyStatus.textContent = text || '';
+    dom.notifyStatus.dataset.state = state || '';
+  }
+
+  function fillNotify(row) {
+    NOTIFY.forEach(function (one) {
+      var box = byId(one.id);
+      if (!box) return;
+
+      /* Anything but an explicit false counts as on, which is also what the
+         column defaults to for anybody who has never touched this page. */
+      box.checked = !row || row[one.column] !== false;
+      box.disabled = false;
+    });
+  }
+
+  function stopNotify(why) {
+    NOTIFY.forEach(function (one) {
+      var box = byId(one.id);
+      if (box) box.disabled = true;
+    });
+    setNotifyStatus(why, 'bad');
+  }
+
+  function wireNotify() {
+    NOTIFY.forEach(function (one) {
+      var box = byId(one.id);
+      if (!box) return;
+
+      box.addEventListener('change', function () {
+        var want = box.checked;
+        var patch = {};
+        patch[one.column] = want;
+
+        var mine = ++notifyTurn;
+        setNotifyStatus('Saving…', '');
+
+        NS.profile.saveNotify(patch).then(function () {
+          if (mine !== notifyTurn) return;        /* a later press has the line */
+          setNotifyStatus('Saved.', 'good');
+        }).catch(function (error) {
+          box.checked = !want;
+
+          /* A failure outranks whatever else is in flight, and invalidates it
+             so a success arriving behind it cannot paint over the bad news. */
+          notifyTurn++;
+          setNotifyStatus('Could not save that. ' +
+            (error && error.message ? error.message : 'Please try again.'), 'bad');
+        });
+      });
     });
   }
 
@@ -319,7 +444,8 @@
       currency: byId('field-currency'),
       currencyForm: byId('currency-form'),
       currencySave: byId('currency-save'),
-      currencyPreview: byId('currency-preview')
+      currencyPreview: byId('currency-preview'),
+      notifyStatus: byId('notify-status')
     };
 
     session.require()
@@ -375,8 +501,11 @@
         dom.userForm.addEventListener('submit', saveUsername);
         dom.username.addEventListener('input', checkAvailability);
 
+        wireTabs();
+        wireNotify();
+
         renderHint();
-        return Promise.all([data.load(), loadUsername()]);
+        return Promise.all([data.load(), loadProfile()]);
       })
       .then(function (loaded) {
         if (!loaded) return;

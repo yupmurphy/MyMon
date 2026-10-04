@@ -1,4 +1,4 @@
-# MyMon — v1.2.0
+# MyMon — v1.2.1
 
 MyMon is a simple personal expense tracker focused on clarity, not complexity.
 
@@ -34,7 +34,7 @@ will not work any more; signing in needs a real address to return to.
 index.html           landing page (public)
 welcome.html         the first screen after a first sign-in: name and username
 dashboard.html       the app (signed in) — two tabs: Personal and Groups
-settings.html        your name, your username, your currency
+settings.html        three tabs: Profile, Account, Notifications
 about.html           what MyMon does and does not do
 style.css            design tokens, both themes, and every component
 js/config.js         which Supabase project to talk to
@@ -123,7 +123,14 @@ opens the site. What protects the data is the Row Level Security from step 2. Th
 - **Welcome** — once, after a first sign-in: your name, and the username people find
   you by. Skipped for good once it has been filled in.
 - **App / dashboard** — the default page after login, in two tabs
-- **Settings** — name, username, currency
+- **Settings** — three tabs, split by what you came to change:
+  - **Profile** — the name MyMon greets you with, and the username people find you by
+  - **Account** — the currency new expenses are written in, the Google account behind
+    it all, and the download
+  - **Notifications** — one switch per kind of notification. No Save button: the switch
+    is the answer, so pressing it is what saves it. The three live on your profile
+    rather than in the browser, because the database triggers that create a
+    notification are the ones that have to read them
 - **About** — the short version of this file, for someone who is not reading the repo
 
 ## User flow
@@ -293,6 +300,9 @@ behind in the browser by v1 are offered for import the first time you sign in.
 
 ## Planned, not built yet
 
+- notifications on the phone while MyMon is closed — needs a VAPID key pair and
+  something server-side to send from; on an iPhone, MyMon has to be on the home
+  screen first
 - splitting a group total per person
 - a friends list, so inviting is not typing a username from memory
 - a monthly limit or budget

@@ -46,7 +46,8 @@ window.MyMon = window.MyMon || {};
   /* Your own row, or null when you have not picked a name yet. */
   function load() {
     return table()
-      .select('username, first_name, last_name, created_at')
+      .select('username, first_name, last_name, created_at, ' +
+              'notify_group_invite, notify_group_comment, notify_comment_on_mine')
       .maybeSingle()
       .then(function (response) {
         if (response.error) throw response.error;
@@ -83,6 +84,28 @@ window.MyMon = window.MyMon || {};
   function trimmed(value) {
     var text = String(value == null ? '' : value).trim().slice(0, 40);
     return text || null;
+  }
+
+  /* ---------- what rings the bell --------------------------------------- */
+
+  /* The three switches on the Settings page. They live on the profile rather
+     than in this browser because the triggers that send a notification are
+     the ones that have to read them — a preference kept on the device would
+     be invisible to the database, and the notification would be made anyway.
+
+     Takes a patch, not all three: turning one off should not rewrite the
+     other two with whatever the page happened to think they were. */
+  function saveNotify(patch) {
+    var user = NS.session.get();
+    if (!user) return Promise.resolve(null);
+
+    return table()
+      .update(patch)
+      .eq('id', user.id)
+      .then(function (response) {
+        if (response.error) throw response.error;
+        return true;
+      });
   }
 
   /* ---------- the first time someone signs in --------------------------- */
@@ -234,6 +257,7 @@ window.MyMon = window.MyMon || {};
     isAvailable: isAvailable,
     save: save,
     saveName: saveName,
+    saveNotify: saveNotify,
     splitName: splitName,
     suggest: suggest,
     saveSetup: saveSetup,

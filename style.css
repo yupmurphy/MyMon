@@ -1310,10 +1310,113 @@ html[data-session="out"] [data-when="signed-in"] { display: none !important; }
   overflow-wrap: anywhere;
 }
 
+/* Settings is three tabs of cards now rather than five cards in a column.
+   The gap between them belongs here, not as an inline style on each card. */
+.settings-stack > * + * { margin-top: 1.25rem; }
+
+/* The tab row needs air under the heading it follows. */
+.tabs--settings { margin-top: 1.75rem; }
+
+/* ---------- a switch ------------------------------------------------------
+
+   One setting you turn on or off. There is no Save button on this kind of
+   row — the switch *is* the answer, so pressing it is what saves it. Which
+   is also why the explanation sits under the name rather than after a
+   button: with nothing to press afterwards, there is nothing for it to be
+   stranded behind. */
+.switch-row {
+  display: grid;
+  grid-template-columns: minmax(0, 1fr) auto;
+  align-items: start;
+  gap: 1rem;
+  padding: 1.05rem 0;
+  border-bottom: 1px solid var(--line);
+}
+.switch-row:last-of-type { border-bottom: 0; padding-bottom: .25rem; }
+.switch-row:first-of-type { padding-top: .35rem; }
+
+.switch-row__name {
+  margin: 0;
+  font-weight: 800;
+  font-size: 1rem;
+  color: var(--ink-900);
+}
+
+.switch-row__why {
+  margin: .3rem 0 0;
+  font-size: .9rem;
+  line-height: 1.5;
+  color: var(--ink-500);
+}
+
+/* The real checkbox is still there, merely not drawn — that is what keeps
+   the keyboard, the label and a screen reader all working. */
+.switch {
+  position: relative;
+  display: inline-block;
+  flex: none;
+  margin-top: .15rem;
+}
+
+.switch input {
+  position: absolute;
+  inset: 0;
+  width: 100%; height: 100%;
+  margin: 0;
+  opacity: 0;
+  cursor: pointer;
+}
+
+.switch__track {
+  position: relative;
+  display: block;
+  width: 46px; height: 28px;
+  border-radius: var(--r-pill);
+  /* 3.48:1 on white, 3.35:1 on the dark card — a control, not prose, so
+     three is the bar it has to clear. */
+  background: var(--ink-300);
+  transition: background .18s ease;
+}
+
+.switch__track::after {
+  content: '';
+  position: absolute;
+  top: 3px; left: 3px;
+  width: 22px; height: 22px;
+  border-radius: 50%;
+  background: #fff;
+  box-shadow: 0 1px 3px rgba(0, 0, 0, .28);
+  transition: transform .18s ease;
+}
+
+.switch input:checked + .switch__track { background: var(--brand-600); }
+.switch input:checked + .switch__track::after { transform: translateX(18px); }
+.switch input:focus-visible + .switch__track { box-shadow: var(--ring); }
+.switch input:disabled { cursor: default; }
+.switch input:disabled + .switch__track { opacity: .5; }
+
+/* Nothing should slide while the page is still deciding what is on. */
+.booting .switch__track,
+.booting .switch__track::after { transition: none; }
+
 /* The chip turns into the way into this page. */
 
 @media (max-width: 680px) {
   .settings-pair { grid-template-columns: 1fr; gap: 0; }
+}
+
+/* A label and its value side by side need room for both. An email does not
+   get it on a phone: the label wraps to "Google / account" and the address
+   breaks mid-word with its tail stranded against the right edge. Narrower
+   than this the pair stacks, and the value reads left to right like
+   everything above it. */
+@media (max-width: 520px) {
+  .settings-row {
+    flex-direction: column;
+    align-items: stretch;
+    gap: .15rem;
+  }
+  .settings-row__value { text-align: left; }
 }
 
 /* prose pages (about) */
