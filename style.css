@@ -1202,6 +1202,42 @@ html[data-session="out"] [data-when="signed-in"] { display: none !important; }
 .prose ul { padding-left: 1.2rem; color: var(--ink-700); margin: 0; }
 .prose li { margin-bottom: .4rem; }
 .prose li:last-child { margin-bottom: 0; }
+
+/* The list of what changed, on the About page. Numbered in the markup because
+   it is an ordered thing, but the numbers are dropped: the version is already
+   the label, and two numbers per line is one too many. The version column is a
+   fixed width with tabular figures so the sentences all start on one line down
+   the page rather than stepping in and out. */
+.changelog {
+  list-style: none;
+  margin: 0;
+  padding: 0;
+  display: grid;
+  gap: .7rem;
+}
+.changelog li {
+  display: grid;
+  grid-template-columns: 9.5rem minmax(0, 1fr);
+  gap: .2rem 1rem;
+  padding-bottom: .7rem;
+  border-bottom: 1px solid var(--line);
+}
+.changelog li:last-child { padding-bottom: 0; border-bottom: 0; }
+.changelog b {
+  color: var(--ink-900);
+  font-weight: 800;
+  font-size: .9rem;
+  font-variant-numeric: tabular-nums;
+  white-space: nowrap;
+}
+.changelog span { color: var(--ink-700); font-size: .95rem; line-height: 1.55; }
+.changelog span b { font-size: inherit; }
+
+@media (max-width: 680px) {
+  /* The version becomes a heading above its line rather than a column that
+     would leave the sentence four words wide. */
+  .changelog li { grid-template-columns: 1fr; gap: .15rem; }
+}
 .prose .card + .card { margin-top: 1.25rem; }
 .prose-grid { display: grid; grid-template-columns: 1fr 1fr; gap: 1.25rem; }
 
