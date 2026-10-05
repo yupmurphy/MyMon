@@ -43,6 +43,12 @@
   /* The personal expense waiting for a group to be picked for it. */
   var copying = null;
 
+  /* What the open group's ledger is narrowed to. It carries the group it
+     belongs to, so that opening a different one starts clean: a filter that
+     survived from the last group would show an empty list with no visible
+     reason for it, and the reason would be two screens back. */
+  var filter = { groupId: null, person: null, category: null };
+
   var dom = {};
   var wired = false;
 
@@ -129,7 +135,19 @@
        from it — between one paint and the next. */
     if (openId && (!group || group.myState !== 'member')) openId = null;
 
+    /* One place to notice the group changed, rather than a reset beside every
+       assignment to openId — there are nine of those and a tenth would forget. */
+    if (filter.groupId !== openId) filter = { groupId: openId, person: null, category: null };
+
     dom.view.innerHTML = openId ? groupHtml(groups.find(openId)) : listHtml();
+  }
+
+  function filtering() { return !!(filter.person || filter.category); }
+
+  function keeps(entry) {
+    if (filter.person && entry.userId !== filter.person) return false;
+    if (filter.category && entry.category !== filter.category) return false;
+    return true;
   }
 
   /* The number on the tab is unanswered invitations only. A badge that counted
@@ -264,16 +282,52 @@
 
       sharesHtml(group, totals) +
 
+      ledgerHtml(group, entries);
+  }
+
+  /* The ledger, and the two rows of chips that narrow it. */
+  function ledgerHtml(group, entries) {
+    var shown = entries.filter(keeps);
+    var sums = groups.totalsOf(shown);
+
+    return '' +
       '<section class="card">' +
         '<div class="card__head">' +
           '<h2 class="card__title">What we spent</h2>' +
           '<button class="btn btn--primary" type="button" data-add-entry="' +
             esc(group.id) + '">' + PLUS + 'Add expense</button>' +
         '</div>' +
-        (entries.length
-          ? '<div class="tx-scroll"><div class="tx-stack">' + daysHtml(entries) + '</div></div>'
-          : '<div class="empty"><h3>Nothing in here yet</h3>' +
-            '<p>Add something, or copy an expense across from your own list.</p></div>') +
+
+        filterBarHtml(group, entries) +
+
+        /* While something is filtered, the answer to "how much, then?" has to
+           be on screen. Without it the chips only hide rows, and the figure
+           you came for is left to be added up by hand. */
+        (filtering()
+          ? '<p class="filters__sum">' +
+              '<span class="num">' +
+                (sums.length
+                  ? sums.map(function (row) { return esc(ui.money(row.total, row.currency)); })
+                        .join('<span class="group-card__and" aria-hidden="true">+</span>')
+                  : '&mdash;') +
+              '</span>' +
+              '<span class="filters__count">' + count(shown.length, 'entry', 'entries') + '</span>' +
+              '<button class="btn btn--quiet" type="button" data-filter-clear="1">Clear</button>' +
+            '</p>'
+          : '') +
+
+        (shown.length
+          ? '<div class="tx-scroll"><div class="tx-stack">' + daysHtml(shown) + '</div></div>'
+          : filtering()
+            /* Said differently from an empty group on purpose: here there *is*
+               something in the group, and the reason the screen is bare is a
+               choice that can be undone from this very sentence. */
+            ? '<div class="empty"><h3>Nothing matches that</h3>' +
+              '<p>No expense in this group fits both chips. ' +
+              '<button class="link-button" type="button" data-filter-clear="1">' +
+              'Clear the filters</button> to see everything again.</p></div>'
+            : '<div class="empty"><h3>Nothing in here yet</h3>' +
+              '<p>Add something, or copy an expense across from your own list.</p></div>') +
       '</section>';
   }
 
@@ -409,6 +463,75 @@
           '</li>';
         }).join('') + '</ul>' +
       '</section>';
+  }
+
+  /* Two rows of chips over the ledger: who paid, and what for.
+
+     Only what is actually in this group gets a chip. A "Transport" filter in a
+     group where nobody has taken a bus is a button whose only outcome is an
+     empty list, and a control that can only disappoint is worse than one that
+     is not there. For the same reason the whole bar is left out when there is
+     nothing to choose between — one person, one category, nothing to narrow. */
+  function filterBarHtml(group, entries) {
+    var people = [];
+    var cats = [];
+    var seen = {};
+
+    entries.forEach(function (entry) {
+      if (!seen['p' + entry.userId]) {
+        seen['p' + entry.userId] = true;
+        people.push(entry.userId);
+      }
+      if (!seen['c' + entry.category]) {
+        seen['c' + entry.category] = true;
+        cats.push(entry.category);
+      }
+    });
+
+    if (people.length < 2 && cats.length < 2) return '';
+
+    function chip(attr, value, on, inner) {
+      return '<button class="chip' + (on ? ' chip--on' : '') + '" type="button" ' +
+             'aria-pressed="' + (on ? 'true' : 'false') + '" ' +
+             'data-' + attr + '="' + esc(value) + '">' + inner + '</button>';
+    }
+
+    var rows = '';
+
+    if (people.length > 1) {
+      rows += '<div class="filters__row">' +
+        '<span class="filters__label">Who paid</span>' +
+        '<div class="filters__chips">' +
+        chip('filter-person', 'all', !filter.person, 'Everyone') +
+        people.map(function (userId) {
+          var person = groups.personOf(userId);
+          /* "You" rather than your own name, the same way the shares list
+             above already names you — it is the row you look for first. */
+          var name = person.isMe ? 'You' : person.title;
+          return chip('filter-person', userId, filter.person === userId, esc(name));
+        }).join('') +
+        '</div>' +
+      '</div>';
+    }
+
+    if (cats.length > 1) {
+      rows += '<div class="filters__row">' +
+        '<span class="filters__label">On what</span>' +
+        '<div class="filters__chips">' +
+        chip('filter-category', 'all', !filter.category, 'Everything') +
+        cats.map(function (id) {
+          var category = data.categoryById(id);
+          var label = category ? category.label : id;
+          var icon = category
+            ? '<span class="chip__icon" aria-hidden="true">' + category.icon + '</span>'
+            : '';
+          return chip('filter-category', id, filter.category === id, icon + esc(label));
+        }).join('') +
+        '</div>' +
+      '</div>';
+    }
+
+    return '<div class="filters">' + rows + '</div>';
   }
 
   /* The ledger, a heading per day — the same shape the personal list has, so
@@ -908,6 +1031,22 @@
       var dropped = hit('delete-group');  if (dropped) return deleteGroup(dropped);
       var invited = hit('invite');        if (invited) return invite(invited);
       var picked = hit('invite-friend');  if (picked) return inviteFriend(openId, picked);
+
+      /* "all" rather than an empty value: hit() turns an empty attribute into
+         true, and a clear button that reads as true is a trap for whoever
+         touches this next. */
+      var who = hit('filter-person');
+      if (who) { filter.person = who === 'all' ? null : who; return render(); }
+
+      var what = hit('filter-category');
+      if (what) { filter.category = what === 'all' ? null : what; return render(); }
+
+      if (hit('filter-clear')) {
+        filter.person = null;
+        filter.category = null;
+        return render();
+      }
+
       var kicked = hit('remove-member');  if (kicked) return removeMember(kicked);
       var adding = hit('add-entry');      if (adding) return openEntryDialog(adding, null);
       var edited = hit('edit-entry');     if (edited) return openEntryDialog(openId, edited);

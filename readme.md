@@ -227,6 +227,21 @@ with. Nothing in the JavaScript decides who may see or change anything; the rule
 in `supabase/migrations/20261001145917_groups_and_comments.sql` and nowhere else. A
 button that is hidden is hidden because pressing it would be refused anyway.
 
+Inside a group, the list of what was spent narrows two ways: **who paid**, and
+**on what**. The figure for whatever is left appears above the list, so "how much
+did Ana put in on food" is two taps and a number rather than arithmetic.
+
+Only what is actually in the group gets a chip. A *Transport* filter in a group
+where nobody has taken a bus is a button whose only possible outcome is an empty
+list, and the whole bar is left out when there is one person and one category —
+nothing to narrow. The filters are forgotten when you leave the group, because a
+filter that survived into the next one would show an empty screen whose reason is
+two taps behind you.
+
+This is narrowing a list, and that is all it is. It does not divide anything by
+the number of people, and nothing anywhere says who owes whom — see the list of
+what MyMon does not do.
+
 Your groups are ordered by the one **you** last spent from. Not by anybody's activity —
 that would reshuffle the list under your finger every time somebody else added forty
 lei. Keyed on your own doing, it only moves when you move it.
