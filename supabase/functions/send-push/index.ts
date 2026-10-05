@@ -54,20 +54,36 @@ type Claimed = {
   group_name: string;
 };
 
-// The same sentences as the bell in js/notifications.js, without the markup.
-// One difference, and it is deliberate: the bell can name the expense because
-// the browser holds the list of categories, and this cannot. "your expense in
-// Rent" is less specific than "your Groceries" but it is never wrong.
-function sentence(row: Claimed): string {
+// The same words as the bell in js/notifications.js, without the markup, and
+// split in two. One difference is deliberate: the bell can name the expense
+// because the browser holds the list of categories, and this cannot. "your
+// expense in Rent" is less specific than "your Groceries" but it is never wrong.
+//
+// A notification has two lines, and they are not the same size.
+//
+// The title shares its line with the site's address and the time — Chrome puts
+// the address on every web notification and there is no way to ask it not to,
+// so on a phone the title is cut after about a dozen characters. The body gets
+// the next line to itself and is far longer.
+//
+// The first version of this put the whole sentence in the title, and a real
+// phone showed "Somebod…". So: the title is the person, which is short and is
+// also what you look at first, and what they did goes in the body.
+function headline(row: Claimed): { title: string; body: string } {
   const who = row.actor_name;
   const group = row.group_name;
 
   switch (row.kind) {
-    case 'friend_request': return `${who} wants to be friends`;
-    case 'friend_accepted': return `${who} and you are friends now`;
-    case 'group_invite': return `${who} invited you to ${group}`;
-    case 'comment_on_mine': return `${who} commented on your expense in ${group}`;
-    default: return `${who} commented in ${group}`;
+    case 'friend_request':
+      return { title: who, body: 'wants to be friends' };
+    case 'friend_accepted':
+      return { title: who, body: 'accepted your friend request' };
+    case 'group_invite':
+      return { title: who, body: `invited you to ${group}` };
+    case 'comment_on_mine':
+      return { title: who, body: `commented on your expense in ${group}` };
+    default:
+      return { title: who, body: `commented in ${group}` };
   }
 }
 
@@ -160,8 +176,10 @@ Deno.serve(async () => {
 
   await Promise.all(fresh.flatMap((row) =>
     (byPerson.get(row.user_id) ?? []).map(async (device) => {
+      const said = headline(row);
       const payload = JSON.stringify({
-        title: sentence(row),
+        title: said.title,
+        body: said.body,
         url: destination(row),
         tag: tagFor(row)
       });
