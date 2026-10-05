@@ -43,12 +43,27 @@ window.MyMon = window.MyMon || {};
     return { ok: true, error: null, value: value };
   }
 
-  /* Your own row, or null when you have not picked a name yet. */
+  /* Your own row, or null when you have not picked a name yet.
+
+     The `eq` is not decoration and must not be taken out. This used to ask for
+     "the profile" without saying whose, and leaned on the row rules to hand
+     back exactly one. That held only while nobody else's profile was readable
+     — the moment groups arrived, everybody you share a group with became
+     visible by design, two rows came back, and `maybeSingle` refuses anything
+     but one. Settings then reported "usernames are not set up on this project",
+     which was its guess and was wrong.
+
+     The lesson, and the reason this comment is long: row rules decide what you
+     *may* see, never what you *asked* for. Asking for one row means naming it. */
   function load() {
+    var user = NS.session.get();
+    if (!user) return Promise.resolve(null);
+
     return table()
       .select('username, first_name, last_name, created_at, ' +
               'notify_group_invite, notify_group_comment, notify_comment_on_mine, ' +
               'notify_friend')
+      .eq('id', user.id)
       .maybeSingle()
       .then(function (response) {
         if (response.error) throw response.error;

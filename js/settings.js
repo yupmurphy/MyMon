@@ -342,8 +342,14 @@
       }
       fillNotify(row);
     }).catch(function (error) {
-      /* Most likely the profiles table has not been created yet. */
-      setStatus('Usernames are not set up on this project yet.', 'bad');
+      /* This used to assert that the profiles table had not been created yet.
+         It was a guess, it was wrong, and it cost an evening: the real fault
+         was a query asking for one row without naming which, and the screen
+         confidently blamed the database. A message that names the thing that
+         actually failed is worth more than a tidy sentence that might be
+         fiction. */
+      setStatus('Could not read your profile. ' +
+        (error && error.message ? error.message : 'Please try again.'), 'bad');
       dom.userSave.disabled = true;
       stopNotify('These cannot be read right now.');
       if (window.console) window.console.warn('profiles:', error && error.message);
