@@ -25,5 +25,5 @@ window.MyMon.config = {
 
      Empty until the pair is made, and MyMon copes: every notification control
      reports "not set up yet" rather than offering a button that cannot work. */
-  vapidPublicKey: ''
+  vapidPublicKey: 'BAPfSx6z020v2CVApZT1BTysxLGQblECYdTHEj13b-BFLzik8bXGJ_vb_fc-lB3f6L4J5n445fujiKYCTLsS1X8'
 };
