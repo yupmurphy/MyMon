@@ -19,13 +19,7 @@
   ],
   "prefer_related_applications": false,
 
-  "//protocol_handlers": "Registered with the operating system when MyMon is installed. It is the only way a page in a browser tab can hand over to the installed app — there is no API for launching one directly.",
-  "protocol_handlers": [
-    {
-      "protocol": "web+mymon",
-      "url": "dashboard.html?via=%s"
-    }
-  ],
+  "//removed_protocol_handlers": "There was a web+mymon handler here, registered with the operating system at install, as the one hack by which a browser tab could hand over to the installed app. It was removed on 2026-10-05 with the button that used it: the navigation does nothing unless Chrome's separate permission has been granted, and it asks for that inconsistently. Nothing sends to web+mymon any more, and a scheme registered with somebody's operating system that nothing ever uses is clutter in their machine, not just in this file.",
   "icons": [
     {
       "src": "icon-192.png",

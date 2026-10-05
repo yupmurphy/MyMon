@@ -7,7 +7,18 @@
                          own install dialog and we hold it until it is clicked
      iPhone              Safari has no such dialog, so the button opens the
                          three steps instead
-     anywhere else       no button at all, rather than one that does nothing */
+     anywhere else       no button at all, rather than one that does nothing
+
+   And a fourth case with no button in it at all: MyMon is already installed on
+   this device. There used to be an "Open the app" button here, built on the
+   one hack that exists — registering a `web+mymon` protocol and navigating to
+   it. It was removed on 2026-10-05 because it does not work and cannot be made
+   to. No browser offers a way for a page to start an installed app; that was
+   taken away on purpose, so a site cannot open applications behind your back.
+   The protocol trick depends on a separate permission Chrome asks for
+   inconsistently, and when it has not been granted the navigation does nothing
+   at all — silently. A button that fails silently is worse than no button, so
+   this case now gets a sentence and nothing to press. */
 (function (NS) {
   'use strict';
 
@@ -61,6 +72,10 @@
 
     function offerBrowserInstall() {
       mode = 'prompt';
+      /* The "already installed" answer arrives late and hides the button. If a
+         real install offer turns up after it, the button has to come back —
+         otherwise the band says "Install app" with nothing to press. */
+      button.hidden = false;
       button.textContent = 'Install app';
 
       if (isTouchDevice()) {
@@ -76,46 +91,25 @@
       band.classList.remove('hidden');
     }
 
-    /* Already installed. The button hands over through the protocol the app
-       registered with the system when it was installed. */
+    /* Already installed. Nothing to press — see the note at the top of this
+       file. Saying so is still worth the room: somebody who installed MyMon
+       months ago and arrived here through a search result has no other way of
+       learning that the icon is already on their device. */
     function offerOpenApp() {
       if (mode) return;                 /* an install offer outranks this one */
       mode = 'open';
-      button.textContent = 'Open the app';
+      button.hidden = true;
       title.textContent = isTouchDevice()
         ? 'MyMon is already on this device'
         : 'MyMon is installed on this computer';
-      copy.textContent = 'This opens it in its own window, away from the browser.';
+      copy.textContent = 'Open it from your apps, the way you open any other one.';
       band.classList.remove('hidden');
-    }
-
-    /* No API starts an installed app, so this navigates to the protocol the
-       app claimed with the system. When the shortcut was never registered —
-       the copy on this machine was installed before MyMon asked for one — the
-       browser quietly does nothing, and the only sign is that this page never
-       lost focus. Rather than leave a button that looks broken, say so. */
-    function launchApp() {
-      var left = false;
-      function mark() { left = true; }
-
-      window.addEventListener('blur', mark);
-      window.addEventListener('pagehide', mark);
-      window.location.href = 'web+mymon://open';
-
-      window.setTimeout(function () {
-        window.removeEventListener('blur', mark);
-        window.removeEventListener('pagehide', mark);
-        if (left) return;
-
-        copy.textContent = 'Nothing opened. This copy was installed before MyMon ' +
-          'had a shortcut to register — start it from your apps, or install it ' +
-          'once more from here and the button will work.';
-      }, 1800);
     }
 
     function offerAppleSteps() {
       if (mode === 'prompt') return;      /* a real dialog beats instructions */
       mode = 'ios';
+      button.hidden = false;
       button.textContent = 'Add to Home Screen';
       title.textContent = 'Keep MyMon on your iPhone';
       copy.textContent = 'Safari can put it on your home screen, with its own icon and no browser bar.';
@@ -137,11 +131,6 @@
     });
 
     button.addEventListener('click', function () {
-      if (mode === 'open') {
-        launchApp();
-        return;
-      }
-
       if (mode === 'prompt' && window.MyMonInstall.event) {
         var prompt = window.MyMonInstall.event;
         window.MyMonInstall.event = null;      /* it can only be used once */
