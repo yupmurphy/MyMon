@@ -366,15 +366,30 @@
 
         <section class="card">
           <div class="card__head">
-            <h2 class="card__title">On your phone</h2>
+            <h2 class="card__title">On this device</h2>
           </div>
-          <p class="muted" style="margin-bottom: 0">
-            Not yet. The switches above decide what reaches the bell; making a phone
-            ring while MyMon is closed needs a piece that is not built &mdash; something
-            on the server side to do the ringing, and on an iPhone, MyMon added to the
-            home screen first. It is on the list, so if your phone stays quiet it is
-            not a setting you have missed.
+
+          <p class="muted">
+            The switches above decide what reaches the bell inside MyMon. This one
+            decides whether <b>this</b> device also buzzes while MyMon is closed.
+            It is per device, not per account &mdash; your phone and your laptop
+            each answer for themselves.
           </p>
+
+          <div class="switch-row" style="margin-top: 1.1rem">
+            <div>
+              <p class="switch-row__name">Ring this device</p>
+              <p class="switch-row__why" id="push-why">Checking what this device can do&hellip;</p>
+            </div>
+            <label class="switch">
+              <input type="checkbox" id="push-toggle" disabled
+                     aria-label="Send notifications to this device" />
+              <span class="switch__track"></span>
+            </label>
+          </div>
+
+          <p class="card__hint" style="white-space: normal; margin-top: 1.1rem"
+             id="push-status" aria-live="polite"></p>
         </section>
       </section>
     </div>
@@ -404,6 +419,7 @@
   <script src="js/ui.js"></script>
   <script src="js/notifications.js"></script>
   <script src="js/xlsx.js"></script>
+  <script src="js/push.js"></script>
   <script src="js/settings.js"></script>
 </body>
 </html>

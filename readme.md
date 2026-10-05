@@ -33,7 +33,7 @@ will not work any more; signing in needs a real address to return to.
 ```
 index.html           landing page (public)
 welcome.html         the first screen after a first sign-in: name and username
-dashboard.html       the app (signed in) — two tabs: Personal and Groups
+dashboard.html       the app (signed in) — three tabs: Personal, Groups, Friends
 settings.html        three tabs: Profile, Account, Notifications
 about.html           what MyMon does and does not do
 style.css            design tokens, both themes, and every component
@@ -52,7 +52,9 @@ js/friendboard.js    everything inside the Friends one
 js/settings.js       the settings page
 js/profile.js        the public half of an account: name, username, first-run check
 js/install.js        the install button, which differs per browser
+js/push.js           asking a browser to ring this device, and recording it
 supabase/migrations/ every change the database has ever had, in order
+supabase/functions/  the one piece that runs on a server, not in a browser
 vendor/supabase.js   the Supabase library, kept here so no CDN can take MyMon down
 tools/make_icons.py  redraws the app icons from the logo
 manifest.webmanifest what the phone needs to install MyMon
@@ -86,6 +88,10 @@ What is in there now:
 | `name_on_the_profile` | first and last name, where a group can read them |
 | `pin_search_path_on_username_available` | the last function brought into line |
 | `notifications` | the bell: a table nobody's browser may write to |
+| `friends` | one row per pair, and the asymmetry about who may see whom |
+| `friend_handle` | the username on the request, so a waiting list has a name |
+| `push_subscriptions` | the devices to ring, and the rule for one that changed hands |
+| `claim_push_batch` | handing a batch to the sender without sending it twice |
 
 ## Connecting it to your own Supabase project
 
@@ -132,9 +138,12 @@ opens the site. What protects the data is the Row Level Security from step 2. Th
   - **Account** — the currency new expenses are written in, the Google account behind
     it all, and the download
   - **Notifications** — one switch per kind of notification. No Save button: the switch
-    is the answer, so pressing it is what saves it. The three live on your profile
+    is the answer, so pressing it is what saves it. The four live on your profile
     rather than in the browser, because the database triggers that create a
-    notification are the ones that have to read them
+    notification are the ones that have to read them. Below them sits a different
+    kind of switch: whether **this** device also buzzes while MyMon is closed. That
+    one is per device, not per account, and it says plainly when it cannot work —
+    on an iPhone, until MyMon is on the home screen, it cannot
 - **About** — the short version of this file, for someone who is not reading the repo
 
 ## User flow
@@ -248,6 +257,41 @@ are all the same act — the row should not exist — and either person may do i
 
 The rules live in `supabase/migrations/20261004230000_friends.sql`.
 
+## Notifications
+
+There are two halves, and they fail independently on purpose.
+
+**The bell**, inside MyMon, is a table no browser may write to. Rows appear
+only from triggers, which read the four switches in Settings before writing
+anything — so a switch turned off is not a filter on what you see, it is a
+notification that was never made. The bell needs nothing but the app being
+open.
+
+**The phone**, while MyMon is closed, is the other half. A browser hands out a
+*subscription*: an address that forwards to one device, plus two keys so the
+forwarder cannot read what passes through. That is a capability, not a
+preference — whoever holds it can make that device buzz — so it is written
+only by a database function, never by a browser, and read by nobody but its
+owner and the sender.
+
+The function deletes any earlier claim on the same address before recording a
+new one. A phone changes hands: you sign out, somebody else signs in, and the
+address is still the same address. Whoever is signed in now owns it.
+
+There is no "ring my phone" column anywhere. The presence of a subscription
+**is** the switch, which is why turning it off is deleting a row, and why the
+control in Settings is per device rather than per account — your phone and
+your laptop each answer for themselves.
+
+The sending runs on a timer rather than on a trigger, because a trigger would
+make every comment wait for several HTTP requests before it was saved. A buzz
+a minute late costs nothing; a comment that takes two seconds to post costs
+every time.
+
+`supabase/functions/send-push/README.md` is the setup, and the three steps in
+it are the owner's: the private key is the project's first real secret and
+belongs in Supabase, never here.
+
 **Not in groups yet:** splitting a total per person ("what did this cost for X
 people"). It is coming as its own feature.
 
@@ -327,6 +371,8 @@ behind in the browser by v1 are offered for import the first time you sign in.
 ## Explicitly out of scope
 
 - income tracking
+- splitting a group total per person, or who owes whom — a group answers what
+  was spent together, and that is the whole of it
 - refunds or loans
 - custom categories
 - salary cycles
@@ -334,10 +380,6 @@ behind in the browser by v1 are offered for import the first time you sign in.
 
 ## Planned, not built yet
 
-- notifications on the phone while MyMon is closed — needs a VAPID key pair and
-  something server-side to send from; on an iPhone, MyMon has to be on the home
-  screen first
-- splitting a group total per person
 - a monthly limit or budget
 - repeating an expense
 

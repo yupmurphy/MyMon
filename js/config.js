@@ -13,5 +13,17 @@ window.MyMon.config = {
 
   /* Supabase → Project Settings → API Keys → the public one
      (named "anon public", or "publishable" on newer projects) */
-  supabaseKey: 'sb_publishable_obDbA80Nd7EubJSeJf2d1w_zDno5Lc4'
+  supabaseKey: 'sb_publishable_obDbA80Nd7EubJSeJf2d1w_zDno5Lc4',
+
+  /* The public half of the project's VAPID key pair — the one a browser needs
+     in order to subscribe to notifications. Public by design, like the two
+     above: it only lets a browser say "send to me", never "send to them".
+
+     Its private half is a real secret. It lives in Supabase, as a secret of
+     the function that does the sending, and must never appear in this file or
+     anywhere else in this repository.
+
+     Empty until the pair is made, and MyMon copes: every notification control
+     reports "not set up yet" rather than offering a button that cannot work. */
+  vapidPublicKey: ''
 };

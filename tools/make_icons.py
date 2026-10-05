@@ -102,10 +102,37 @@ def icon(size, radius_pct=0.225, letter=0.44, valley=0.66):
     return img.resize((size, size), Image.LANCZOS)
 
 
+def badge(size=72):
+    """The icon Android puts in the status bar when a notification arrives.
+
+    Android throws the colours away and keeps only the alpha, drawing the
+    shape in white or in the system accent. So this is the letter alone, no
+    tile — hand it the full icon and it becomes a white square with a hole
+    where the M used to be.
+
+    The stroke is thicker than the app icon's and the letter smaller. It is
+    drawn at roughly 18 pixels on a real phone, with no tile behind it to
+    carry the shape, and the margin is there because the system crops a
+    little."""
+    u = size * S
+    img = Image.new('RGBA', (u, u), (0, 0, 0, 0))
+
+    w = u * 0.62
+    hgt = w * 0.91
+    c = u / 2.0
+    rounded_m(ImageDraw.Draw(img),
+              [c - w / 2, c - hgt / 2, c + w / 2, c + hgt / 2],
+              w * 0.24, WHITE, 0.66)
+
+    return img.resize((size, size), Image.LANCZOS)
+
+
 icon(512).save('icon-512.png')
 icon(192).save('icon-192.png')
 icon(180, radius_pct=0).save('apple-touch-icon.png')          # iOS masks it itself
 icon(512, radius_pct=0, letter=0.40).save('icon-maskable-512.png')  # inside the safe zone
+
+badge(72).save('badge-72.png')                                # the status bar
 
 ico = icon(256)
 ico.save('favicon.ico', sizes=[(16, 16), (32, 32), (48, 48), (64, 64)])

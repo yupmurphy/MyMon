@@ -425,6 +425,82 @@
     });
   }
 
+  /* ---------- ringing this device ----------------------------------------- */
+
+  /* What each answer from NS.push.state() means, in words somebody can act on.
+     The two that matter most are the ones that are *not* a fault of theirs:
+     "no-key" is MyMon's own half missing, and "needs-install" is a real step
+     with a real result. Neither should read like a broken switch. */
+  var PUSH_WHY = {
+    'no-key': 'Not yet. The part that does the ringing is not set up, so there ' +
+              'is nothing here you have missed.',
+    unsupported: 'This browser cannot show notifications at all.',
+    'needs-install': 'Add MyMon to your home screen first — tap Share, then ' +
+                     '“Add to Home Screen”. On an iPhone that is the only way ' +
+                     'notifications can work.',
+    blocked: 'Your browser is set to refuse notifications from MyMon. That has ' +
+             'to be undone in the browser’s own settings for this site, not here.',
+    off: 'Off. This device stays quiet while MyMon is closed.',
+    on: 'On. This device will buzz even with MyMon closed.'
+  };
+
+  var pushTurn = 0;         /* same guard as the switches above */
+
+  function paintPush(state) {
+    if (!dom.pushToggle) return;
+
+    dom.pushToggle.checked = state === 'on';
+    dom.pushToggle.disabled = !(state === 'on' || state === 'off');
+
+    if (dom.pushWhy) {
+      var why = PUSH_WHY[state] || PUSH_WHY.unsupported;
+      if (state === 'on') why = 'On for ' + NS.push.label() + '. It will buzz ' +
+                                'even with MyMon closed.';
+      dom.pushWhy.textContent = why;
+    }
+  }
+
+  function setPushStatus(text, state) {
+    if (!dom.pushStatus) return;
+    dom.pushStatus.textContent = text || '';
+    dom.pushStatus.dataset.state = state || '';
+  }
+
+  function wirePush() {
+    if (!dom.pushToggle || !NS.push) return;
+
+    NS.push.state().then(paintPush);
+
+    dom.pushToggle.addEventListener('change', function () {
+      var want = dom.pushToggle.checked;
+      var mine = ++pushTurn;
+
+      /* Both directions talk to the browser and then the database, and the
+         browser's half can sit on a permission dialog for as long as a person
+         takes to read it. Lock the switch rather than let it be flipped twice. */
+      dom.pushToggle.disabled = true;
+      setPushStatus(want ? 'Asking your browser…' : 'Turning off…', '');
+
+      var work = want ? NS.push.turnOn() : NS.push.turnOff();
+
+      work.then(function (result) {
+        if (mine !== pushTurn) return;
+
+        paintPush(result.state);
+        if (result.ok) setPushStatus(want ? 'This device is set.' : 'Turned off.', 'good');
+        else setPushStatus(result.error || 'That did not work.', 'bad');
+      }).catch(function (error) {
+        if (mine !== pushTurn) return;
+
+        /* Ask the browser again rather than assume: a failure halfway through
+           can leave it subscribed even though the row was never written. */
+        NS.push.state().then(paintPush);
+        setPushStatus('Could not change that. ' +
+          (error && error.message ? error.message : 'Please try again.'), 'bad');
+      });
+    });
+  }
+
   function init() {
     dom = {
       first: byId('field-first'),
@@ -446,7 +522,10 @@
       currencyForm: byId('currency-form'),
       currencySave: byId('currency-save'),
       currencyPreview: byId('currency-preview'),
-      notifyStatus: byId('notify-status')
+      notifyStatus: byId('notify-status'),
+      pushToggle: byId('push-toggle'),
+      pushWhy: byId('push-why'),
+      pushStatus: byId('push-status')
     };
 
     session.require()
@@ -504,6 +583,7 @@
 
         wireTabs();
         wireNotify();
+        wirePush();
 
         renderHint();
         return Promise.all([data.load(), loadProfile()]);

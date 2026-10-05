@@ -938,6 +938,12 @@
         if (NS.groupBoard) NS.groupBoard.start();
         if (NS.friendBoard) NS.friendBoard.start();
         offerLegacyImport();
+
+        /* Browsers replace a push subscription on their own, and a service
+           worker woken without a page cannot write the new one down — it has
+           no token. So the record is repaired here instead, on every load.
+           Silent on purpose: nobody opened the dashboard to hear about this. */
+        if (NS.push) NS.push.sync();
       })
       .catch(function (error) {
         document.body.classList.remove('booting');
