@@ -1,0 +1,47 @@
+-- MyMon — letting the database make an HTTP request.
+--
+-- pg_cron was already here: it is the clock, and it runs SQL on a schedule.
+-- But send-push is not SQL, it is an address on the internet, and a Postgres
+-- database has no way to call one. pg_net is that missing organ, and the only
+-- reason it is installed:
+--
+--   pg_cron (every minute) -> pg_net (makes the call) -> send-push
+--
+-- It is asynchronous by design: the request is queued and the database carries
+-- on, rather than sitting blocked while a function thinks.
+
+create extension if not exists pg_net with schema extensions;
+
+-- ---------------------------------------------------------------------------
+-- What this hands out, and what actually holds it shut
+-- ---------------------------------------------------------------------------
+-- pg_net arrives granting USAGE on the `net` schema and EXECUTE on
+-- net.http_post and friends to PUBLIC — so to `anon` and `authenticated` as
+-- well. That is the extension's own default and not a decision made here.
+--
+-- The first instinct is to revoke it. On Supabase you cannot: those grants are
+-- made by `supabase_admin`, this project connects as `postgres`, which is
+-- neither a superuser nor a member of it, and Postgres silently ignores a
+-- revoke you are not entitled to make. A `revoke` statement here would run
+-- without error and change nothing — which is worse than not writing one,
+-- because the file would then claim a protection that does not exist.
+--
+-- What does hold it shut is one layer up, and it was checked from outside with
+-- the publishable key rather than assumed:
+--
+--     POST /rest/v1/rpc/http_post            -> 404, no such function in public
+--     the same, with Content-Profile: net    -> 406, "Only the following
+--                                               schemas are exposed: public,
+--                                               graphql_public"
+--
+-- So a browser cannot reach net.* at all: PostgREST will not route to that
+-- schema. The protection is real, but it lives in the API's configuration
+-- rather than in a grant, and that is worth knowing rather than discovering.
+--
+-- The thing to never do, in consequence: add `net` to the exposed schemas in
+-- Project Settings → API. Nothing in MyMon needs it, and it would turn the
+-- database into an open relay for anybody holding a key that is published in
+-- this repository on purpose.
+--
+-- Nothing in MyMon calls net.* itself. The only caller is the scheduled job,
+-- which runs as its owner, and the sender, which runs as service_role.
