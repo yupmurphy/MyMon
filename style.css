@@ -415,6 +415,71 @@ html[data-session="out"] [data-when="signed-in"] { display: none !important; }
   white-space: nowrap;
 }
 
+/* An "i" that holds the sentence somebody needs once and never again.
+   Settings used to explain every switch in three lines. All of it was true and
+   worth saying — but a page of nine choices then read like a manual, and the
+   explanation is wanted on the first visit, not the fiftieth. So each one keeps
+   a short line that says what the switch is, and the reasoning moves in here.
+
+   A press, not a hover: a hover tooltip does not exist on a phone, and a phone
+   is where this page is mostly read. The words stay in the document either way
+   — findable, translatable, there for a screen reader — and `hidden` is the
+   only thing that comes off. */
+.info {
+  flex: none;
+  margin-right: auto;            /* beside its title, not out at the card's edge */
+  width: 1.5rem; height: 1.5rem; /* a 24px target drawn as an 18px circle */
+  padding: 0;
+  border: 0;
+  background: none;
+  display: inline-grid;
+  place-items: center;
+  vertical-align: -.25em;        /* when it follows a name inside a paragraph */
+  font: inherit;
+  color: var(--ink-500);
+  cursor: pointer;
+}
+
+.info::before {
+  content: 'i';
+  width: 1.15rem; height: 1.15rem;
+  display: grid;
+  place-items: center;
+  /* The ring takes the letter's colour rather than a line token: at
+     --line-strong it measured 1.38:1 against the card, which is a boundary
+     nobody can see, and the hover and open states then came for free. */
+  border: 1px solid currentColor;
+  border-radius: 50%;
+  font-size: .72rem;
+  font-weight: 800;
+  line-height: 1;
+}
+
+.info:hover { color: var(--ink-900); }
+
+/* Open is a filled dot rather than a green letter. The green is a colour you
+   put white words on — as a letter on the dark theme's card it measured
+   3.53:1, which is worse than the plain grey it replaces, so the open state
+   was harder to read than the shut one. Filled, the white letter sits at
+   4.86:1 on both themes, and it matches how a chosen chip is drawn. */
+.info[aria-expanded="true"]::before {
+  background: var(--brand-600);
+  border-color: var(--brand-600);
+  color: #fff;
+}
+.info:focus-visible { outline: none; border-radius: 50%; box-shadow: var(--ring); }
+
+.info-note {
+  margin: .55rem 0 0;
+  padding: .6rem .75rem;
+  background: var(--surface-sunken);
+  border-radius: var(--r-sm);
+  font-size: .88rem;
+  line-height: 1.55;
+  color: var(--ink-500);
+}
+.info-note[hidden] { display: none; }
+
 /* A small row of mutually exclusive buttons — used above the chart to say
    which currency it is about, in a month that holds several. */
 .seg-row {

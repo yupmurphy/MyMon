@@ -168,14 +168,22 @@
         <form class="card" id="username-form" novalidate>
           <div class="card__head">
             <h2 class="card__title">Your username</h2>
+            <button class="info" type="button" aria-expanded="false"
+                    aria-controls="why-username">
+              <span class="sr-only">More about usernames</span>
+            </button>
           </div>
 
           <!-- The explanation moved above the field. It used to sit under the
                Save button, where it answered a question you had already had
                to guess the answer to. -->
           <p class="muted" style="margin-top: -.2rem; font-size: .92rem">
-            Unlike your name above, a username belongs to one person only. It is how
-            friends will find you once MyMon learns about friends.
+            How friends find you. It belongs to one person only.
+          </p>
+          <p class="info-note" id="why-username" hidden>
+            Your name above can be anybody&rsquo;s; this cannot. Change it and the old
+            one is free for somebody else the same moment &mdash; including somebody
+            who then has the name your friends knew you by.
           </p>
 
           <div class="field" data-field="username" style="margin-top: 1rem">
@@ -205,13 +213,20 @@
         <form class="card" id="currency-form" novalidate>
           <div class="card__head">
             <h2 class="card__title">Currency</h2>
+            <button class="info" type="button" aria-expanded="false"
+                    aria-controls="why-currency">
+              <span class="sr-only">More about the currency setting</span>
+            </button>
           </div>
 
           <p class="muted" style="margin-top: -.2rem; font-size: .92rem">
-            Every expense keeps the currency it was logged in. Changing this affects
-            what you add from now on &mdash; 800 lei spent last week stay 800 lei, because
-            that is what they were. A month holding two currencies shows two totals,
-            side by side; MyMon never converts one into the other.
+            Sets what you add from now on. Nothing already logged changes.
+          </p>
+          <p class="info-note" id="why-currency" hidden>
+            Every expense keeps the currency it was logged in: 800 lei spent last week
+            stay 800 lei, because that is what they were. A month holding two
+            currencies shows two totals, side by side &mdash; MyMon never converts one
+            into the other.
           </p>
 
           <div class="field" style="margin-top: 1rem">
@@ -286,21 +301,35 @@
         <section class="card">
           <div class="card__head">
             <h2 class="card__title">What rings the bell</h2>
+            <button class="info" type="button" aria-expanded="false"
+                    aria-controls="why-bell">
+              <span class="sr-only">More about these switches</span>
+            </button>
           </div>
 
           <p class="muted" style="margin-top: -.2rem">
-            The bell sits in the top corner of every page. These choices are kept with
-            your account rather than in this browser, so they hold on every device you
-            sign in on.
+            The bell sits in the top corner of every page.
+          </p>
+          <p class="info-note" id="why-bell" hidden>
+            These choices are kept with your account rather than in this browser, so
+            they hold on every device you sign in on. There is no Save button: a
+            switch that needs confirming is a switch that lies about its own position,
+            so each one writes as you press it.
           </p>
 
           <div style="margin-top: .7rem">
             <div class="switch-row">
               <div>
-                <p class="switch-row__name">Somebody wants to be friends</p>
+                <p class="switch-row__name">Somebody wants to be friends
+                  <button class="info" type="button" aria-expanded="false"
+                    aria-controls="why-friend">
+              <span class="sr-only">More about friend requests</span>
+            </button></p>
                 <p class="switch-row__why">
-                  Either half of it &mdash; a request arriving, and somebody you asked
-                  saying yes. One switch, because they are two ends of the same
+                  A request arriving, or somebody you asked saying yes.
+                </p>
+                <p class="info-note" id="why-friend" hidden>
+                  One switch for both, because they are two ends of the same
                   conversation and nobody wants half of it.
                 </p>
               </div>
@@ -313,11 +342,17 @@
 
             <div class="switch-row">
               <div>
-                <p class="switch-row__name">You are invited to a group</p>
+                <p class="switch-row__name">You are invited to a group
+                  <button class="info" type="button" aria-expanded="false"
+                    aria-controls="why-invite">
+              <span class="sr-only">More about group invitations</span>
+            </button></p>
                 <p class="switch-row__why">
-                  Somebody asks you to share a group with them. With this off the
-                  invitation still waits for you under Groups &mdash; you just will not
-                  be told the moment it arrives.
+                  Somebody asks you to share a group with them.
+                </p>
+                <p class="info-note" id="why-invite" hidden>
+                  With this off the invitation still waits for you under Groups
+                  &mdash; you just will not be told the moment it arrives.
                 </p>
               </div>
               <label class="switch">
@@ -329,11 +364,17 @@
 
             <div class="switch-row">
               <div>
-                <p class="switch-row__name">Somebody comments on your expense</p>
+                <p class="switch-row__name">Somebody comments on your expense
+                  <button class="info" type="button" aria-expanded="false"
+                    aria-controls="why-mine">
+              <span class="sr-only">More about replies to your expenses</span>
+            </button></p>
                 <p class="switch-row__why">
-                  One of your own entries in a shared group gets a reply. This is the
-                  one worth keeping on &mdash; it is usually a question about something
-                  you wrote down.
+                  A reply to one of your own entries in a shared group.
+                </p>
+                <p class="info-note" id="why-mine" hidden>
+                  The one worth keeping on: a reply to your own entry is usually a
+                  question about something you wrote down.
                 </p>
               </div>
               <label class="switch">
@@ -345,11 +386,17 @@
 
             <div class="switch-row">
               <div>
-                <p class="switch-row__name">Any comment in your groups</p>
+                <p class="switch-row__name">Any comment in your groups
+                  <button class="info" type="button" aria-expanded="false"
+                    aria-controls="why-comment">
+              <span class="sr-only">More about group comments</span>
+            </button></p>
                 <p class="switch-row__why">
-                  Every reply in a group you are in, not only the ones about your own
-                  entries. The chattiest of the three, and the first to turn off if the
-                  bell starts ringing too often.
+                  Every reply in a group you are in, not only yours.
+                </p>
+                <p class="info-note" id="why-comment" hidden>
+                  The chattiest of the four, and the first to turn off if the bell
+                  starts ringing too often.
                 </p>
               </div>
               <label class="switch">
@@ -367,13 +414,19 @@
         <section class="card">
           <div class="card__head">
             <h2 class="card__title">On this device</h2>
+            <button class="info" type="button" aria-expanded="false"
+                    aria-controls="why-device">
+              <span class="sr-only">More about ringing this device</span>
+            </button>
           </div>
 
           <p class="muted">
-            The switches above decide what reaches the bell inside MyMon. This one
-            decides whether <b>this</b> device also buzzes while MyMon is closed.
-            It is per device, not per account &mdash; your phone and your laptop
-            each answer for themselves.
+            Whether <b>this</b> device also buzzes while MyMon is closed.
+          </p>
+          <p class="info-note" id="why-device" hidden>
+            The switches above decide what reaches the bell inside MyMon; this one
+            decides what reaches the device itself. It is per device, not per account
+            &mdash; your phone and your laptop each answer for themselves.
           </p>
 
           <div class="switch-row" style="margin-top: 1.1rem">

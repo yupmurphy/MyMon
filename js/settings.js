@@ -466,6 +466,29 @@
     }
   }
 
+  /* ---------- the "i" beside a title ----------------------------------- */
+
+  /* One listener for all of them, on the page rather than on each button:
+     there are eight, they never move, and eight listeners would be eight
+     chances to add a ninth button and forget to wire it.
+
+     Open and shut both live in the attributes — `aria-expanded` on the button
+     and `hidden` on the paragraph — so there is no third copy of the answer to
+     fall out of step with the other two. */
+  function wireInfo() {
+    document.addEventListener('click', function (event) {
+      var button = event.target.closest && event.target.closest('.info');
+      if (!button) return;
+
+      var note = byId(button.getAttribute('aria-controls'));
+      if (!note) return;
+
+      var open = button.getAttribute('aria-expanded') === 'true';
+      button.setAttribute('aria-expanded', open ? 'false' : 'true');
+      note.hidden = open;
+    });
+  }
+
   function setPushStatus(text, state) {
     if (!dom.pushStatus) return;
     dom.pushStatus.textContent = text || '';
@@ -533,6 +556,10 @@
       pushWhy: byId('push-why'),
       pushStatus: byId('push-status')
     };
+
+    /* Before the sign-in check, not after: the explanations are plain words on
+       a page and have nothing to do with being signed in. */
+    wireInfo();
 
     session.require()
       .then(function (signedIn) {
