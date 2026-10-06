@@ -132,7 +132,10 @@
             <li>Searches everything you ever logged, by note, amount or date.</li>
             <li>Hands the lot over as a spreadsheet whenever you want it.</li>
             <li>Shares a ledger with a few people, in a group, with comments on it.</li>
-            <li>Rings a bell when somebody invites you to a group or comments on an entry.</li>
+            <li>Rings a bell when somebody invites you to a group or comments on an entry
+              &mdash; and rings your phone, if you ask it to, while MyMon is closed.</li>
+            <li>Narrows a group&rsquo;s ledger to one person or one category, and totals
+              whatever is left.</li>
           </ul>
         </div>
 
@@ -144,18 +147,21 @@
               <li>A date is never in the future, and not more than 20 years back.</li>
               <li>An expense can be corrected later, and a deletion can be undone.</li>
               <li>Months are plain calendar months &mdash; no closing, no salary cycles.</li>
-              <li>The seven categories are fixed, and one of them is <em>Other</em>.</li>
+              <li>The seven categories are fixed, and one of them is <em>Other</em>. They
+                cannot be added to: each colour was chosen and checked twice, once against
+                white and once against black, and an unchecked one would walk straight
+                into that set.</li>
             </ul>
           </div>
 
           <div class="card">
-            <h2>Not here, yet</h2>
+            <h2>Not here</h2>
             <ul>
-              <li>Income, refunds and loans</li>
-              <li>Splitting a group total per person</li>
-              <li>A friends list, so inviting is not typing a username</li>
-              <li>A monthly limit, and expenses that repeat</li>
-              <li>Custom categories &mdash; see below</li>
+              <li>Income, refunds and loans &mdash; not yet</li>
+              <li>A monthly limit, and expenses that repeat &mdash; not yet</li>
+              <li>Dividing a group total per head, or who owes whom. Not an omission:
+                a group answers what was spent together, and that is the whole of it.</li>
+              <li>Custom categories &mdash; see the rules</li>
             </ul>
           </div>
         </div>
@@ -200,53 +206,23 @@
         </div>
 
         <div class="card" style="margin-top: 1.25rem">
-          <h2>Light and dark</h2>
-          <p style="margin-bottom: 0">
-            MyMon follows whatever your device is set to. The button in the corner
-            overrules it, on that device, and remembers. The two themes do not share a
-            palette: the seven category colours were chosen and checked separately for
-            each, because a colour that separates cleanly on white does not on black.
-            That is also why you cannot add your own categories &mdash; a colour nobody
-            checked would walk straight into that set.
-          </p>
-        </div>
-
-        <div class="card" style="margin-top: 1.25rem">
           <h2>What changed</h2>
           <p class="muted">
-            Newest first. MyMon is written in the open &mdash;
-            <a href="https://github.com/yupmurphy/MyMon">every change is on GitHub</a>.
+            The ones worth stopping at, newest first. MyMon is written in the open, so
+            every change &mdash; including the dozens of small ones not listed here &mdash;
+            <a href="https://github.com/yupmurphy/MyMon">is on GitHub</a>.
           </p>
           <ol class="changelog">
-            <li><b>1.3</b> <span><b>Friends.</b> Add somebody once, and inviting them to a group is picking a name instead of remembering a username.</span></li>
-            <li><b>1.2.4</b> <span>Your groups are ordered by the one you last spent from, so the one you live in is the one on top.</span></li>
-            <li><b>1.2.3</b> <span>In a group you are a guest in, the way out stopped floating in the middle of the card.</span></li>
-            <li><b>1.2.2</b> <span>A new icon for the home screen, and a settings cog you
-              can actually tell is a cog.</span></li>
-            <li><b>1.2.1</b> <span>Settings split into three tabs &mdash; who you are, how the
-              app works for you, and what it may interrupt you about &mdash; with switches for
-              the bell that save the moment you press them.</span></li>
+            <li><b>1.3</b> <span><b>Friends, and a phone that rings.</b> Add somebody once,
+              and inviting them to a group is picking a name instead of remembering a
+              username. Notifications reach your phone with MyMon closed.</span></li>
             <li><b>1.2</b> <span><b>Notifications.</b> A bell in the corner that tells you
               when you are invited to a group and when somebody comments &mdash; and takes you
               straight to the thing it is about.</span></li>
-            <li><b>1.1.25 &ndash; 1.1.27</b> <span>One shape for the main action, readable greys,
-              and no more lonely half&#8209;rows.</span></li>
-            <li><b>1.1.23 &ndash; 1.1.24</b> <span>The dark theme got its light back at the top of
-              the page, and a month label you can actually read.</span></li>
-            <li><b>1.1.22</b> <span>A first screen that asks for your name and the username people
-              find you by, once.</span></li>
-            <li><b>1.1.21</b> <span>A dark theme. People in a group show up with a name and a
-              face, not just a handle.</span></li>
             <li><b>1.1.19 &ndash; 1.1.20</b> <span><b>Groups.</b> A shared ledger, invitations,
               comments, and the rules underneath that decide who sees what.</span></li>
             <li><b>1.1.17 &ndash; 1.1.18</b> <span>Log any day in the past, and take the whole lot
               away as a real spreadsheet.</span></li>
-            <li><b>1.1.13 &ndash; 1.1.16</b> <span>Search every expense you have, a chart of the
-              months behind you, and the same header on every page.</span></li>
-            <li><b>1.1.7 &ndash; 1.1.12</b> <span>The landing page found its voice, and MyMon
-              became installable on a phone.</span></li>
-            <li><b>1.1.3 &ndash; 1.1.6</b> <span>A currency of your choice, carried by each expense
-              rather than the account. Expenses you can correct instead of retype.</span></li>
             <li><b>1.1</b> <span>Real accounts and a real database. The same numbers on the laptop
               and the phone.</span></li>
             <li><b>1.0</b> <span>One number, seven categories, and a month you can read at a
@@ -254,13 +230,6 @@
           </ol>
         </div>
 
-        <div class="card" style="margin-top: 1.25rem">
-          <h2>About the name</h2>
-          <p style="margin-bottom: 0">
-            MyMon is a working project name. Trademark availability will be checked later,
-            and the name may change to MonMom or another alternative if needed.
-          </p>
-        </div>
       </div>
     </section>
 
